@@ -10,6 +10,7 @@ interface AdminGuardProps {
   children: React.ReactNode
 }
 
+/** 관리자 인증 */
 export function AdminGuard({ children }: AdminGuardProps) {
   const { user } = useAuthStore()
   const router = useRouter()
