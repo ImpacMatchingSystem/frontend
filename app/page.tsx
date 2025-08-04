@@ -90,9 +90,6 @@ export default function HomePage() {
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
             </Button>
-            <Button size="lg" variant="outline" asChild>
-              <Link href="/login">기업으로 참여하기</Link>
-            </Button>
           </div>
 
           {event && (
@@ -160,58 +157,6 @@ export default function HomePage() {
                 <CardDescription>실시간 알림과 관리 시스템으로 원활한 커뮤니케이션을 지원합니다.</CardDescription>
               </CardHeader>
             </Card>
-          </div>
-        </div>
-      </section>
-
-      {/* Stats Section */}
-      <section className="py-20 px-4 bg-gray-50">
-        <div className="container mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-center">
-            <div>
-              <div className="text-4xl font-bold text-primary mb-2">500+</div>
-              <div className="text-gray-600">참가 기업</div>
-            </div>
-            <div>
-              <div className="text-4xl font-bold text-primary mb-2">2,000+</div>
-              <div className="text-gray-600">성공한 미팅</div>
-            </div>
-            <div>
-              <div className="text-4xl font-bold text-primary mb-2">95%</div>
-              <div className="text-gray-600">만족도</div>
-            </div>
-            <div>
-              <div className="text-4xl font-bold text-primary mb-2">24/7</div>
-              <div className="text-gray-600">고객 지원</div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-20 px-4 bg-primary text-white">
-        <div className="container mx-auto text-center">
-          <h2 className="text-3xl font-bold mb-4">{event ? `${event.title}에 참여하세요` : "지금 바로 시작하세요"}</h2>
-          <p className="text-xl mb-8 opacity-90">
-            {event
-              ? `${new Date(event.start_date).toLocaleDateString("ko-KR")}부터 시작되는 특별한 기회를 놓치지 마세요.`
-              : "새로운 비즈니스 기회를 놓치지 마세요. 오늘부터 미팅을 예약해보세요."}
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" variant="secondary" asChild>
-              <Link href="/companies">
-                참가기업 둘러보기
-                <Building2 className="ml-2 h-5 w-5" />
-              </Link>
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              className="text-primary border-white hover:bg-white bg-transparent"
-              asChild
-            >
-              <Link href="/login">기업 로그인</Link>
-            </Button>
           </div>
         </div>
       </section>

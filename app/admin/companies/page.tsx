@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState, useEffect } from "react"
-import { Building2, Search, Filter, MoreHorizontal, Edit, Trash2, Plus } from "lucide-react"
+import { Building2, Search, Filter, MoreHorizontal, Edit, Trash2, Plus, Upload } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -25,6 +25,7 @@ import { AdminHeader } from "@/components/layout/admin-header"
 import { AdminGuard } from "@/components/admin/admin-guard"
 import { mockApi, type Company } from "@/lib/mock-api"
 import { useToast } from "@/hooks/use-toast"
+import { ExcelUpload } from "@/components/admin/excel-upload"
 
 const INDUSTRIES = [
   "전자/IT",
@@ -69,6 +70,7 @@ export default function AdminCompaniesPage() {
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
+  const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false)
 
   const { toast } = useToast()
 
@@ -209,20 +211,44 @@ export default function AdminCompaniesPage() {
               <p className="text-gray-600">참가 기업들을 관리하고 현황을 확인하세요.</p>
             </div>
 
-            <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-              <DialogTrigger asChild>
-                <Button>
-                  <Plus className="mr-2 h-4 w-4" />새 기업 추가
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl">
-                <DialogHeader>
-                  <DialogTitle>새 기업 추가</DialogTitle>
-                  <DialogDescription>새로운 기업을 시스템에 추가합니다.</DialogDescription>
-                </DialogHeader>
-                <CompanyEditForm onSave={handleCreateCompany} onCancel={() => setIsCreateDialogOpen(false)} />
-              </DialogContent>
-            </Dialog>
+            <div className="flex gap-2">
+              <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button>
+                    <Plus className="mr-2 h-4 w-4" />새 기업 추가
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl">
+                  <DialogHeader>
+                    <DialogTitle>새 기업 추가</DialogTitle>
+                    <DialogDescription>새로운 기업을 시스템에 추가합니다.</DialogDescription>
+                  </DialogHeader>
+                  <CompanyEditForm onSave={handleCreateCompany} onCancel={() => setIsCreateDialogOpen(false)} />
+                </DialogContent>
+              </Dialog>
+
+              <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline">
+                    <Upload className="mr-2 h-4 w-4" />
+                    Excel 업로드
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-4xl">
+                  <DialogHeader>
+                    <DialogTitle>기업 Excel 업로드</DialogTitle>
+                    <DialogDescription>Excel 파일을 사용하여 기업 데이터를 일괄 업로드합니다.</DialogDescription>
+                  </DialogHeader>
+                  <ExcelUpload
+                    type="companies"
+                    onUploadComplete={() => {
+                      setIsUploadDialogOpen(false)
+                      fetchCompanies()
+                    }}
+                  />
+                </DialogContent>
+              </Dialog>
+            </div>
           </div>
 
           {/* 필터 및 검색 */}

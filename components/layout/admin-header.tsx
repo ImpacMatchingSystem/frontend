@@ -25,13 +25,13 @@ export function AdminHeader() {
 
   return (
     <header className="border-b bg-white">
-      <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+      <div className="container bg-white mx-auto px-4 h-16 flex items-center justify-between">
         <Link href="/admin/dashboard" className="flex items-center space-x-2">
           <Shield className="h-8 w-8 text-primary" />
           <span className="text-xl font-bold">ImpacMatching Admin</span>
         </Link>
 
-        <nav className="hidden md:flex items-center space-x-6">
+        <nav className="hidden md:flex items-center space-x-6 bg-white">
           <Link href="/admin/dashboard" className="text-sm font-medium hover:text-primary">
             대시보드
           </Link>
@@ -59,7 +59,7 @@ export function AdminHeader() {
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56" align="end" forceMount>
+              <DropdownMenuContent className="w-56 bg-white" align="end" forceMount>
                 <div className="flex items-center justify-start gap-2 p-2">
                   <div className="flex flex-col space-y-1 leading-none">
                     <p className="font-medium">{user.name}</p>

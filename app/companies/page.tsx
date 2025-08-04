@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { mockApi, type Company } from "@/lib/mock-api"
@@ -18,10 +17,7 @@ export default function CompaniesPage() {
   const [filteredCompanies, setFilteredCompanies] = useState<Company[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
-  const [selectedIndustry, setSelectedIndustry] = useState<string>("all")
-  const [selectedLocation, setSelectedLocation] = useState<string>("all")
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
-  const [favorites, setFavorites] = useState<Set<string>>(new Set())
 
   const { toast } = useToast()
 
@@ -29,9 +25,6 @@ export default function CompaniesPage() {
     fetchCompanies()
   }, [])
 
-  useEffect(() => {
-    filterCompanies()
-  }, [companies, searchTerm, selectedIndustry, selectedLocation])
 
   const fetchCompanies = async () => {
     try {
@@ -47,42 +40,6 @@ export default function CompaniesPage() {
       setLoading(false)
     }
   }
-
-  const filterCompanies = () => {
-    let filtered = companies
-
-    if (searchTerm) {
-      filtered = filtered.filter(
-        (company) =>
-          company.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          company.description?.toLowerCase().includes(searchTerm.toLowerCase()),
-      )
-    }
-
-    if (selectedIndustry !== "all") {
-      filtered = filtered.filter((company) => company.industry === selectedIndustry)
-    }
-
-    if (selectedLocation !== "all") {
-      filtered = filtered.filter((company) => company.location === selectedLocation)
-    }
-
-    setFilteredCompanies(filtered)
-  }
-
-  const toggleFavorite = (companyId: string) => {
-    const newFavorites = new Set(favorites)
-    if (newFavorites.has(companyId)) {
-      newFavorites.delete(companyId)
-    } else {
-      newFavorites.add(companyId)
-    }
-    setFavorites(newFavorites)
-  }
-
-  const industries = [...new Set(companies.map((c) => c.industry).filter(Boolean))]
-  const locations = [...new Set(companies.map((c) => c.location).filter(Boolean))]
-
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -124,34 +81,6 @@ export default function CompaniesPage() {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4">
-              <Select value={selectedIndustry} onValueChange={setSelectedIndustry}>
-                <SelectTrigger className="w-full sm:w-[180px]">
-                  <SelectValue placeholder="업종 선택" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">모든 업종</SelectItem>
-                  {industries.map((industry) => (
-                    <SelectItem key={industry} value={industry!}>
-                      {industry}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Select value={selectedLocation} onValueChange={setSelectedLocation}>
-                <SelectTrigger className="w-full sm:w-[180px]">
-                  <SelectValue placeholder="지역 선택" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">모든 지역</SelectItem>
-                  {locations.map((location) => (
-                    <SelectItem key={location} value={location!}>
-                      {location}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
               <div className="flex border rounded-md">
                 <Button
                   variant={viewMode === "grid" ? "default" : "ghost"}
@@ -213,16 +142,6 @@ export default function CompaniesPage() {
                         </div>
                       </div>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => toggleFavorite(company.id)}
-                      className="text-gray-400 hover:text-yellow-500"
-                    >
-                      <Star
-                        className={`h-4 w-4 ${favorites.has(company.id) ? "fill-yellow-500 text-yellow-500" : ""}`}
-                      />
-                    </Button>
                   </div>
                 </CardHeader>
 

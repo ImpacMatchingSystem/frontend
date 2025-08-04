@@ -1,9 +1,15 @@
 import { createClient } from "@supabase/supabase-js"
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+// 환경변수가 없을 때 기본값 설정 (개발용)
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder.supabase.co"
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "placeholder-key"
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+// Supabase 클라이언트가 실제로 사용되지 않으므로 더미 클라이언트 생성
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    persistSession: false,
+  },
+})
 
 export type Database = {
   public: {

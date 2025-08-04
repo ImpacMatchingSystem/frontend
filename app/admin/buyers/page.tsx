@@ -1,9 +1,8 @@
 "use client"
 
 import type React from "react"
-
 import { useState, useEffect } from "react"
-import { User, Search, Filter, MoreHorizontal, Edit, Trash2, Plus } from "lucide-react"
+import { User, Search, Filter, Upload, Plus, MoreHorizontal, Edit, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -22,6 +21,7 @@ import { AdminHeader } from "@/components/layout/admin-header"
 import { AdminGuard } from "@/components/admin/admin-guard"
 import { mockApi, type Buyer } from "@/lib/mock-api"
 import { useToast } from "@/hooks/use-toast"
+import { ExcelUpload } from "@/components/admin/excel-upload"
 
 export default function AdminBuyersPage() {
   const [buyers, setBuyers] = useState<Buyer[]>([])
@@ -31,6 +31,7 @@ export default function AdminBuyersPage() {
   const [selectedBuyer, setSelectedBuyer] = useState<Buyer | null>(null)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
+  const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false)
 
   const { toast } = useToast()
 
@@ -158,20 +159,44 @@ export default function AdminBuyersPage() {
               <p className="text-gray-600">바이어들을 관리하고 현황을 확인하세요.</p>
             </div>
 
-            <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-              <DialogTrigger asChild>
-                <Button>
-                  <Plus className="mr-2 h-4 w-4" />새 바이어 추가
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl">
-                <DialogHeader>
-                  <DialogTitle>새 바이어 추가</DialogTitle>
-                  <DialogDescription>새로운 바이어를 시스템에 추가합니다.</DialogDescription>
-                </DialogHeader>
-                <BuyerForm onSave={handleCreateBuyer} onCancel={() => setIsCreateDialogOpen(false)} />
-              </DialogContent>
-            </Dialog>
+            <div className="flex gap-2">
+              <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button>
+                    <Plus className="mr-2 h-4 w-4" />새 바이어 추가
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl">
+                  <DialogHeader>
+                    <DialogTitle>새 바이어 추가</DialogTitle>
+                    <DialogDescription>새로운 바이어를 시스템에 추가합니다.</DialogDescription>
+                  </DialogHeader>
+                  <BuyerForm onSave={handleCreateBuyer} onCancel={() => setIsCreateDialogOpen(false)} />
+                </DialogContent>
+              </Dialog>
+
+              <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline">
+                    <Upload className="mr-2 h-4 w-4" />
+                    Excel 업로드
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-4xl">
+                  <DialogHeader>
+                    <DialogTitle>바이어 Excel 업로드</DialogTitle>
+                    <DialogDescription>Excel 파일을 사용하여 바이어 데이터를 일괄 업로드합니다.</DialogDescription>
+                  </DialogHeader>
+                  <ExcelUpload
+                    type="buyers"
+                    onUploadComplete={() => {
+                      setIsUploadDialogOpen(false)
+                      fetchBuyers()
+                    }}
+                  />
+                </DialogContent>
+              </Dialog>
+            </div>
           </div>
 
           {/* 필터 및 검색 */}

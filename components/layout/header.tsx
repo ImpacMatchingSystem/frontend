@@ -60,9 +60,6 @@ export function Header() {
             <Link href="/companies" className="text-gray-600 hover:text-gray-900 transition-colors">
               기업 목록
             </Link>
-            <Link href="/events" className="text-gray-600 hover:text-gray-900 transition-colors">
-              행사 정보
-            </Link>
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -71,7 +68,7 @@ export function Header() {
                     <span>{user.name}</span>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuContent align="end" className="bg-white w-48">
                   <DropdownMenuItem asChild>
                     <Link href={getDashboardLink()} className="flex items-center">
                       <User className="mr-2 h-4 w-4" />
@@ -89,9 +86,6 @@ export function Header() {
               <div className="flex items-center space-x-4">
                 <Link href="/login">
                   <Button variant="ghost">로그인</Button>
-                </Link>
-                <Link href="/register">
-                  <Button>회원가입</Button>
                 </Link>
               </div>
             )}
@@ -115,13 +109,6 @@ export function Header() {
                 onClick={() => setIsMenuOpen(false)}
               >
                 기업 목록
-              </Link>
-              <Link
-                href="/events"
-                className="text-gray-600 hover:text-gray-900 transition-colors"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                행사 정보
               </Link>
               {user ? (
                 <>
@@ -149,9 +136,6 @@ export function Header() {
                     <Button variant="ghost" className="w-full justify-start">
                       로그인
                     </Button>
-                  </Link>
-                  <Link href="/register" onClick={() => setIsMenuOpen(false)}>
-                    <Button className="w-full">회원가입</Button>
                   </Link>
                 </div>
               )}
