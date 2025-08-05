@@ -73,10 +73,10 @@ export default function AdminDashboard() {
         const stats = {
           totalCompanies: companiesCount || 0,
           totalMeetings: meetings.length,
-          pendingMeetings: meetings.filter((m) => m.status === "pending").length,
-          confirmedMeetings: meetings.filter((m) => m.status === "confirmed").length,
-          rejectedMeetings: meetings.filter((m) => m.status === "rejected").length,
-          todayMeetings: meetings.filter((m) => new Date(m.meeting_time).toDateString() === today).length,
+          pendingMeetings: meetings.filter((m: any) => m.status === "pending").length,
+          confirmedMeetings: meetings.filter((m: any) => m.status === "confirmed").length,
+          rejectedMeetings: meetings.filter((m: any) => m.status === "rejected").length,
+          todayMeetings: meetings.filter((m: any) => new Date(m.meeting_time).toDateString() === today).length,
         }
 
         setStats(stats)
