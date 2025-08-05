@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { useAuthStore } from "@/lib/store"
+import { useAuthStore } from "@/store/auth-store"
 
 export function BuyerHeader() {
   const { user, logout } = useAuthStore()
@@ -26,16 +26,16 @@ export function BuyerHeader() {
   return (
     <header className="border-b bg-white">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-        <Link href="/buyer/dashboard" className="flex items-center space-x-2">
+        <Link href="/dashboard/buyer" className="flex items-center space-x-2">
           <Building2 className="h-8 w-8 text-primary" />
           <span className="text-xl font-bold">ImpacMatching</span>
         </Link>
 
         <nav className="hidden md:flex items-center space-x-6">
-          <Link href="/companies" className="text-sm font-medium hover:text-primary">
+          <Link href="/dashboard/buyer/companies" className="text-sm font-medium hover:text-primary">
             참가기업
           </Link>
-          <Link href="/buyer/dashboard" className="text-sm font-medium hover:text-primary">
+          <Link href="/dashboard/buyer" className="text-sm font-medium hover:text-primary">
             내 신청내역
           </Link>
         </nav>
@@ -59,13 +59,13 @@ export function BuyerHeader() {
                 </div>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
-                  <Link href="/buyer/dashboard">
+                  <Link href="/dashboard/buyer">
                     <User className="mr-2 h-4 w-4" />
                     대시보드
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href="/companies">
+                  <Link href="/dashboard/buyer/companies">
                     <Calendar className="mr-2 h-4 w-4" />
                     기업 둘러보기
                   </Link>
@@ -80,10 +80,10 @@ export function BuyerHeader() {
           ) : (
             <div className="flex items-center space-x-2">
               <Button variant="ghost" asChild>
-                <Link href="/buyer/login">로그인</Link>
+                <Link href="/login">로그인</Link>
               </Button>
               <Button asChild>
-                <Link href="/companies">기업 둘러보기</Link>
+                <Link href="/dashboard/buyer/companies">기업 둘러보기</Link>
               </Button>
             </div>
           )}

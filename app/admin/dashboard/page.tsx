@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { AdminHeader } from "@/components/layout/admin-header"
 import { AdminGuard } from "@/components/admin/admin-guard"
-import { supabase } from "@/lib/supabase"
+import { supabase } from "@/lib/supabase/supabase"
 import { useToast } from "@/hooks/use-toast"
 
 interface AdminStats {

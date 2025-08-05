@@ -8,9 +8,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/hooks/use-toast"
-import { useAuthStore } from "@/lib/store"
-import { mockApi } from "@/lib/mock-api"
-import type { Company } from "@/lib/mock-data"
+import { useAuthStore } from "@/store/auth-store"
+import { mockApi } from "@/lib/supabase/mock-api"
+import type { Company } from "@/lib/supabase/mock-data"
 
 export default function MeetingRequestPage() {
   const params = useParams()
@@ -44,7 +44,7 @@ export default function MeetingRequestPage() {
             description: "기업 정보를 찾을 수 없습니다.",
             variant: "destructive",
           })
-          router.push("/companies")
+          router.push("/dashboard/buyer/companies")
           return
         }
         setCompany(companyData)
@@ -145,7 +145,7 @@ export default function MeetingRequestPage() {
         description: "미팅 요청이 성공적으로 전송되었습니다.",
       })
 
-      router.push("/buyer/dashboard")
+      router.push("/dashboard/buyer")
     } catch (error) {
       console.error("Failed to create meeting:", error)
       toast({

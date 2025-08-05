@@ -60,19 +60,3 @@ export async function signIn(email: string, password: string): Promise<AuthUser 
     return null
   }
 }
-
-// 기존 함수들은 호환성을 위해 유지
-export async function signInCompany(email: string, password: string): Promise<AuthUser | null> {
-  const user = await signIn(email, password)
-  return user && user.role === "company" ? user : null
-}
-
-export async function signInAdmin(email: string, password: string): Promise<AuthUser | null> {
-  const user = await signIn(email, password)
-  return user && user.role === "admin" ? user : null
-}
-
-export async function signInBuyer(email: string, password: string): Promise<AuthUser | null> {
-  const user = await signIn(email, password)
-  return user && user.role === "buyer" ? user : null
-}

@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/dialog"
 import { AdminHeader } from "@/components/layout/admin-header"
 import { AdminGuard } from "@/components/admin/admin-guard"
-import { mockApi, type Meeting, type Company, type Buyer } from "@/lib/mock-api"
+import { mockApi, type Meeting, type Company, type Buyer } from "@/lib/supabase/mock-api"
 import { useToast } from "@/hooks/use-toast"
 
 interface MeetingWithDetails extends Meeting {

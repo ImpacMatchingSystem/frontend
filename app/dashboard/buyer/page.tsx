@@ -6,8 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { BuyerHeader } from "@/components/layout/buyer-header"
-import { mockApi, type Meeting, type Company } from "@/lib/mock-api"
-import { useAuthStore } from "@/lib/store"
+import { mockApi, type Meeting, type Company } from "@/lib/supabase/mock-api"
+import { useAuthStore } from "@/store/auth-store"
 import { useToast } from "@/hooks/use-toast"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
@@ -209,7 +209,7 @@ export default function BuyerDashboard() {
                 <Building2 className="mx-auto h-12 w-12 text-gray-400 mb-4" />
                 <p className="text-gray-500 text-lg mb-4">아직 신청한 미팅이 없습니다.</p>
                 <Button asChild>
-                  <Link href="/companies">기업 둘러보기</Link>
+                  <Link href="/dashboard/buyer/companies">기업 둘러보기</Link>
                 </Button>
               </div>
             ) : (
@@ -317,13 +317,13 @@ export default function BuyerDashboard() {
             <CardContent>
               <div className="flex flex-wrap gap-4">
                 <Button asChild>
-                  <Link href="/companies">
+                  <Link href="/dashboard/buyer/companies">
                     <Building2 className="mr-2 h-4 w-4" />
                     기업 둘러보기
                   </Link>
                 </Button>
                 <Button variant="outline" asChild>
-                  <Link href="/companies">
+                  <Link href="/dashboard/buyer/companies">
                     <Calendar className="mr-2 h-4 w-4" />새 미팅 신청
                   </Link>
                 </Button>

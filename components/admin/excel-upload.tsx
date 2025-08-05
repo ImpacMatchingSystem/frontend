@@ -18,7 +18,7 @@ import {
   uploadBuyers,
   downloadCompanyTemplate,
   downloadBuyerTemplate,
-} from "@/lib/excel-utils"
+} from "@/lib/utils/excel-utils"
 
 interface ExcelUploadProps {
   type: "companies" | "buyers"

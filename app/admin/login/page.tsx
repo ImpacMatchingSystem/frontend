@@ -11,8 +11,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast"
-import { signInAdmin } from "@/lib/auth"
-import { useAuthStore } from "@/lib/store"
+import { signIn } from "@/lib/supabase/auth"
+import { useAuthStore } from "@/store/auth-store"
 
 export default function AdminLoginPage() {
   const [isLoading, setIsLoading] = useState(false)
@@ -48,7 +48,7 @@ export default function AdminLoginPage() {
     setIsLoading(true)
 
     try {
-      const adminUser = await signInAdmin(formData.email, formData.password)
+      const adminUser = await signIn(formData.email, formData.password)
 
       if (adminUser) {
         setUser(adminUser)

@@ -18,8 +18,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Header } from "@/components/layout/header"
-import { mockApi, type Meeting, type Buyer } from "@/lib/mock-api"
-import { useAuthStore } from "@/lib/store"
+import { mockApi, type Meeting, type Buyer } from "@/lib/supabase/mock-api"
+import { useAuthStore } from "@/store/auth-store"
 import { useToast } from "@/hooks/use-toast"
 
 interface MeetingWithBuyer extends Meeting {

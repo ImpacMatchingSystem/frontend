@@ -1,5 +1,5 @@
 import * as XLSX from "xlsx"
-import { mockApi } from "./mock-api"
+import { mockApi } from "@/lib/supabase/mock-api"
 
 export interface ExcelCompanyData {
   name: string
@@ -128,14 +128,18 @@ export const uploadCompanies = async (
         continue
       }
 
-      await mockApi.companies.create({
-        ...companyData,
-        event_id: "event1", // 기본 이벤트 ID
-        password_hash: companyData.password, // 실제로는 해시화 필요
-        logo_url: null,
-        available_times: {},
-        settings: { email_notifications: true },
-      })
+    await mockApi.companies.create({
+      ...companyData,
+      description: companyData.description || null,
+      website_url: companyData.website_url || null,
+      industry: companyData.industry || null,
+      location: companyData.location || null,
+      is_active: companyData.is_active ?? true,
+      password_hash: companyData.password || null,
+      logo_url: null,
+      available_times: {},
+      settings: { email_notifications: true },
+    })
 
       success++
     } catch (error) {
@@ -162,9 +166,11 @@ export const uploadBuyers = async (buyers: ExcelBuyerData[]): Promise<{ success:
 
       await mockApi.buyers.create({
         ...buyerData,
-        event_id: "event1", // 기본 이벤트 ID
+        phone: buyerData.phone || null,
+        company_name: buyerData.company_name || null,
+        position: buyerData.position || null,
       })
-
+      
       success++
     } catch (error) {
       errors.push(`${buyerData.email}: 업로드 실패`)

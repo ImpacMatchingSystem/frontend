@@ -12,6 +12,7 @@ export interface Company {
   settings: any
   is_active: boolean
   created_at: string
+  password_hash?: string | null
 }
 
 export interface Buyer {

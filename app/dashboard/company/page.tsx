@@ -6,8 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Header } from "@/components/layout/header"
-import { mockApi, type Meeting, type Buyer } from "@/lib/mock-api"
-import { useAuthStore } from "@/lib/store"
+import { mockApi, type Meeting, type Buyer } from "@/lib/supabase/mock-api"
+import { useAuthStore } from "@/store/auth-store"
 import { useToast } from "@/hooks/use-toast"
 import Link from "next/link"
 
@@ -301,13 +301,13 @@ export default function CompanyDashboard() {
             <CardContent>
               <div className="flex flex-wrap gap-4">
                 <Button asChild>
-                  <Link href="/company/meetings">
+                  <Link href="/dashboard/company/meetings">
                     <Users className="mr-2 h-4 w-4" />
                     미팅 관리
                   </Link>
                 </Button>
                 <Button variant="outline" asChild>
-                  <Link href="/company/schedule">
+                  <Link href="/dashboard/company/schedule">
                     <Calendar className="mr-2 h-4 w-4" />
                     시간 설정
                   </Link>

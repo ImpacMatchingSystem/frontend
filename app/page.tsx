@@ -2,13 +2,13 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { ArrowRight, Building2, Calendar, Users, Zap, Clock } from "lucide-react"
+import { ArrowRight, Calendar, Users, Zap, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
-import { mockApi, type Event } from "@/lib/mock-api"
+import { mockApi, type Event } from "@/lib/supabase/mock-api"
 
 export default function HomePage() {
   const [event, setEvent] = useState<Event | null>(null)
@@ -85,7 +85,7 @@ export default function HomePage() {
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" asChild>
-              <Link href="/companies">
+              <Link href="/dashboard/buyer/companies">
                 미팅 신청하기
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Link>

@@ -12,7 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { useAuthStore } from "@/lib/store"
+import { useAuthStore } from "@/store/auth-store"
 import { useToast } from "@/hooks/use-toast"
 
 export function Header() {
@@ -35,9 +35,9 @@ export function Header() {
 
     switch (user.role) {
       case "company":
-        return "/company/dashboard"
+        return "/dashboard/company"
       case "buyer":
-        return "/buyer/dashboard"
+        return "/dashboard/buyer"
       case "admin":
         return "/admin/dashboard"
       default:
@@ -57,7 +57,7 @@ export function Header() {
 
           {/* 데스크톱 네비게이션 */}
           <nav className="hidden md:flex items-center space-x-8">
-            <Link href="/companies" className="text-gray-600 hover:text-gray-900 transition-colors">
+            <Link href="/dashboard/buyer/companies" className="text-gray-600 hover:text-gray-900 transition-colors">
               기업 목록
             </Link>
             {user ? (
@@ -104,7 +104,7 @@ export function Header() {
           <div className="md:hidden py-4 border-t">
             <div className="flex flex-col space-y-4">
               <Link
-                href="/companies"
+                href="/dashboard/buyer/companies"
                 className="text-gray-600 hover:text-gray-900 transition-colors"
                 onClick={() => setIsMenuOpen(false)}
               >

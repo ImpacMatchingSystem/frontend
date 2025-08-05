@@ -18,7 +18,7 @@ export function Footer() {
             <h3 className="font-semibold mb-4">서비스</h3>
             <ul className="space-y-2 text-sm">
               <li>
-                <Link href="/companies" className="text-muted-foreground hover:text-primary">
+                <Link href="/dashboard/buyer/companies" className="text-muted-foreground hover:text-primary">
                   참가기업 목록
                 </Link>
               </li>
@@ -39,7 +39,7 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/company/dashboard" className="text-muted-foreground hover:text-primary">
+                <Link href="/dashboard/company" className="text-muted-foreground hover:text-primary">
                   대시보드
                 </Link>
               </li>

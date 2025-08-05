@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { useAuthStore } from "@/lib/store"
+import { useAuthStore } from "@/store/auth-store"
 
 export function AdminHeader() {
   const { user, logout } = useAuthStore()

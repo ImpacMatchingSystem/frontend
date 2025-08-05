@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
-import { mockApi, type Company } from "@/lib/mock-api"
+import { mockApi, type Company } from "@/lib/supabase/mock-api"
 import { useToast } from "@/hooks/use-toast"
 
 export default function CompaniesPage() {
@@ -152,11 +152,11 @@ export default function CompaniesPage() {
 
                   <div className="flex flex-col sm:flex-row gap-2">
                     <Button asChild className="flex-1">
-                      <Link href={`/companies/${company.id}/meeting`}>미팅 신청하기</Link>
+                      <Link href={`/dashboard/buyer/companies/${company.id}/meeting`}>미팅 신청하기</Link>
                     </Button>
                     <div className="flex gap-2">
                       <Button variant="outline" size="sm" asChild>
-                        <Link href={`/companies/${company.id}`}>상세보기</Link>
+                        <Link href={`/dashboard/buyer/companies/${company.id}`}>상세보기</Link>
                       </Button>
                       {company.website_url && (
                         <Button variant="outline" size="sm" asChild>

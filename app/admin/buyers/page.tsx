@@ -19,7 +19,7 @@ import {
 import { Label } from "@/components/ui/label"
 import { AdminHeader } from "@/components/layout/admin-header"
 import { AdminGuard } from "@/components/admin/admin-guard"
-import { mockApi, type Buyer } from "@/lib/mock-api"
+import { mockApi, type Buyer } from "@/lib/supabase/mock-api"
 import { useToast } from "@/hooks/use-toast"
 import { ExcelUpload } from "@/components/admin/excel-upload"
 

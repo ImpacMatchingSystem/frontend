@@ -4,7 +4,7 @@ import type React from "react"
 
 import { useEffect } from "react"
 import { Toaster } from "@/components/ui/toaster"
-import { mockApi } from "@/lib/mock-api"
+import { mockApi } from "@/lib/supabase/mock-api"
 
 interface ClientLayoutProps {
   children: React.ReactNode

@@ -7,8 +7,8 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
-import { useAuthStore } from "@/lib/store"
-import { mockApi } from "@/lib/mock-api"
+import { useAuthStore } from "@/store/auth-store"
+import { mockApi } from "@/lib/supabase/mock-api"
 
 export default function CompanySchedulePage() {
   const router = useRouter()

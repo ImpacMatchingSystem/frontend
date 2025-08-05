@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/dialog"
 import { AdminHeader } from "@/components/layout/admin-header"
 import { AdminGuard } from "@/components/admin/admin-guard"
-import { mockApi, type Event } from "@/lib/mock-api"
+import { mockApi, type Event } from "@/lib/supabase/mock-api"
 import { useToast } from "@/hooks/use-toast"
 
 export default function AdminEventsPage() {

@@ -11,9 +11,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast"
-import { signIn } from "@/lib/auth"
-import { useAuthStore } from "@/lib/store"
-import { mockApi } from "@/lib/mock-api"
+import { signIn } from "@/lib/supabase/auth"
+import { useAuthStore } from "@/store/auth-store"
+import { mockApi } from "@/lib/supabase/mock-api"
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
@@ -68,10 +68,10 @@ export default function LoginPage() {
         // role에 따라 적절한 대시보드로 리다이렉트
         switch (user.role) {
           case "company":
-            router.push("/company/dashboard")
+            router.push("/dashboard/company")
             break
           case "buyer":
-            router.push("/buyer/dashboard")
+            router.push("/dashboard/buyer")
             break
           case "admin":
             router.push("/admin/dashboard")
