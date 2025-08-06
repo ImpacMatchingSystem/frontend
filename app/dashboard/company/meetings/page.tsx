@@ -1,11 +1,25 @@
-"use client"
+'use client'
 
-import { useState, useEffect } from "react"
-import { Calendar, Clock, User, Mail, Phone, Building, MessageSquare, Check, X, Filter } from "lucide-react"
-import { Card, CardContent } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useState, useEffect } from 'react'
+
+import { useAuthStore } from '@/store/auth-store'
+import {
+  Calendar,
+  Clock,
+  User,
+  Mail,
+  Phone,
+  Building,
+  MessageSquare,
+  Check,
+  X,
+  Filter,
+} from 'lucide-react'
+
+import { Header } from '@/components/layout/header'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
 import {
   Dialog,
   DialogContent,
@@ -13,14 +27,21 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
-import { Textarea } from "@/components/ui/textarea"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Header } from "@/components/layout/header"
-import { mockApi, type Meeting, type Buyer } from "@/lib/supabase/mock-api"
-import { useAuthStore } from "@/store/auth-store"
-import { useToast } from "@/hooks/use-toast"
+} from '@/components/ui/dialog'
+import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Textarea } from '@/components/ui/textarea'
+
+import { useToast } from '@/hooks/use-toast'
+
+import { mockApi, type Meeting, type Buyer } from '@/lib/supabase/mock-api'
 
 interface MeetingWithBuyer extends Meeting {
   buyer: Buyer
@@ -29,10 +50,11 @@ interface MeetingWithBuyer extends Meeting {
 export default function CompanyMeetingsPage() {
   const [meetings, setMeetings] = useState<MeetingWithBuyer[]>([])
   const [loading, setLoading] = useState(true)
-  const [selectedMeeting, setSelectedMeeting] = useState<MeetingWithBuyer | null>(null)
-  const [responseMessage, setResponseMessage] = useState("")
-  const [rejectionReason, setRejectionReason] = useState("")
-  const [statusFilter, setStatusFilter] = useState("all")
+  const [selectedMeeting, setSelectedMeeting] =
+    useState<MeetingWithBuyer | null>(null)
+  const [responseMessage, setResponseMessage] = useState('')
+  const [rejectionReason, setRejectionReason] = useState('')
+  const [statusFilter, setStatusFilter] = useState('all')
 
   const { user } = useAuthStore()
   const { toast } = useToast()
@@ -54,77 +76,83 @@ export default function CompanyMeetingsPage() {
       const buyers = await mockApi.buyers.getAll()
 
       const meetingsWithBuyers: MeetingWithBuyer[] = meetingList
-        .map((meeting) => {
-          const buyer = buyers.find((b) => b.id === meeting.buyer_id)
+        .map(meeting => {
+          const buyer = buyers.find(b => b.id === meeting.buyer_id)
           return { ...meeting, buyer: buyer! }
         })
-        .filter((m) => m.buyer)
+        .filter(m => m.buyer)
 
       setMeetings(meetingsWithBuyers)
     } catch (error) {
       toast({
-        title: "데이터 로딩 오류",
-        description: "미팅 목록을 불러오는데 실패했습니다.",
-        variant: "destructive",
+        title: '데이터 로딩 오류',
+        description: '미팅 목록을 불러오는데 실패했습니다.',
+        variant: 'destructive',
       })
     } finally {
       setLoading(false)
     }
   }
 
-  const handleMeetingAction = async (meetingId: string, action: "confirmed" | "rejected") => {
+  const handleMeetingAction = async (
+    meetingId: string,
+    action: 'confirmed' | 'rejected'
+  ) => {
     try {
       const updateData: Partial<Meeting> = {
         status: action,
       }
 
-      if (action === "confirmed" && responseMessage) {
+      if (action === 'confirmed' && responseMessage) {
         updateData.company_response = responseMessage
-      } else if (action === "rejected" && rejectionReason) {
+      } else if (action === 'rejected' && rejectionReason) {
         updateData.rejection_reason = rejectionReason
       }
 
       await mockApi.meetings.update(meetingId, updateData)
 
       toast({
-        title: action === "confirmed" ? "미팅 승인" : "미팅 거절",
-        description: `미팅이 ${action === "confirmed" ? "승인" : "거절"}되었습니다.`,
+        title: action === 'confirmed' ? '미팅 승인' : '미팅 거절',
+        description: `미팅이 ${action === 'confirmed' ? '승인' : '거절'}되었습니다.`,
       })
 
       setSelectedMeeting(null)
-      setResponseMessage("")
-      setRejectionReason("")
+      setResponseMessage('')
+      setRejectionReason('')
       fetchMeetings()
     } catch (error) {
       toast({
-        title: "오류",
-        description: "미팅 상태 변경에 실패했습니다.",
-        variant: "destructive",
+        title: '오류',
+        description: '미팅 상태 변경에 실패했습니다.',
+        variant: 'destructive',
       })
     }
   }
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case "pending":
+      case 'pending':
         return (
-          <Badge variant="outline" className="text-yellow-600 border-yellow-600">
+          <Badge
+            variant="outline"
+            className="text-yellow-600 border-yellow-600"
+          >
             대기중
           </Badge>
         )
-      case "confirmed":
+      case 'confirmed':
         return (
           <Badge variant="outline" className="text-green-600 border-green-600">
             승인됨
           </Badge>
         )
-      case "rejected":
+      case 'rejected':
         return (
           <Badge variant="outline" className="text-red-600 border-red-600">
             거절됨
           </Badge>
         )
-      case "completed":
+      case 'completed':
         return (
           <Badge variant="outline" className="text-blue-600 border-blue-600">
             완료됨
@@ -135,16 +163,16 @@ export default function CompanyMeetingsPage() {
     }
   }
 
-  const filteredMeetings = meetings.filter((meeting) => {
-    if (statusFilter === "all") return true
+  const filteredMeetings = meetings.filter(meeting => {
+    if (statusFilter === 'all') return true
     return meeting.status === statusFilter
   })
 
   const groupedMeetings = {
-    pending: filteredMeetings.filter((m) => m.status === "pending"),
-    confirmed: filteredMeetings.filter((m) => m.status === "confirmed"),
-    rejected: filteredMeetings.filter((m) => m.status === "rejected"),
-    completed: filteredMeetings.filter((m) => m.status === "completed"),
+    pending: filteredMeetings.filter(m => m.status === 'pending'),
+    confirmed: filteredMeetings.filter(m => m.status === 'confirmed'),
+    rejected: filteredMeetings.filter(m => m.status === 'rejected'),
+    completed: filteredMeetings.filter(m => m.status === 'completed'),
   }
 
   if (loading) {
@@ -168,7 +196,9 @@ export default function CompanyMeetingsPage() {
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">미팅 관리</h1>
-          <p className="text-gray-600">받은 미팅 신청을 관리하고 일정을 확인하세요.</p>
+          <p className="text-gray-600">
+            받은 미팅 신청을 관리하고 일정을 확인하세요.
+          </p>
         </div>
 
         {/* 필터 */}
@@ -192,11 +222,21 @@ export default function CompanyMeetingsPage() {
 
         <Tabs defaultValue="all" className="w-full">
           <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="all">전체 ({filteredMeetings.length})</TabsTrigger>
-            <TabsTrigger value="pending">대기중 ({groupedMeetings.pending.length})</TabsTrigger>
-            <TabsTrigger value="confirmed">승인됨 ({groupedMeetings.confirmed.length})</TabsTrigger>
-            <TabsTrigger value="rejected">거절됨 ({groupedMeetings.rejected.length})</TabsTrigger>
-            <TabsTrigger value="completed">완료됨 ({groupedMeetings.completed.length})</TabsTrigger>
+            <TabsTrigger value="all">
+              전체 ({filteredMeetings.length})
+            </TabsTrigger>
+            <TabsTrigger value="pending">
+              대기중 ({groupedMeetings.pending.length})
+            </TabsTrigger>
+            <TabsTrigger value="confirmed">
+              승인됨 ({groupedMeetings.confirmed.length})
+            </TabsTrigger>
+            <TabsTrigger value="rejected">
+              거절됨 ({groupedMeetings.rejected.length})
+            </TabsTrigger>
+            <TabsTrigger value="completed">
+              완료됨 ({groupedMeetings.completed.length})
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="all" className="mt-6">
@@ -241,11 +281,16 @@ export default function CompanyMeetingsPage() {
         </Tabs>
 
         {/* 미팅 상세 다이얼로그 */}
-        <Dialog open={!!selectedMeeting} onOpenChange={() => setSelectedMeeting(null)}>
+        <Dialog
+          open={!!selectedMeeting}
+          onOpenChange={() => setSelectedMeeting(null)}
+        >
           <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>미팅 상세 정보</DialogTitle>
-              <DialogDescription>미팅 신청 내용을 확인하고 승인 또는 거절하세요.</DialogDescription>
+              <DialogDescription>
+                미팅 신청 내용을 확인하고 승인 또는 거절하세요.
+              </DialogDescription>
             </DialogHeader>
 
             {selectedMeeting && (
@@ -258,7 +303,9 @@ export default function CompanyMeetingsPage() {
                       바이어 정보
                     </Label>
                     <div className="p-3 bg-gray-50 rounded-lg space-y-1">
-                      <p className="font-medium">{selectedMeeting.buyer.name}</p>
+                      <p className="font-medium">
+                        {selectedMeeting.buyer.name}
+                      </p>
                       <p className="text-sm text-gray-600 flex items-center gap-1">
                         <Mail className="h-3 w-3" />
                         {selectedMeeting.buyer.email}
@@ -273,7 +320,8 @@ export default function CompanyMeetingsPage() {
                         <p className="text-sm text-gray-600 flex items-center gap-1">
                           <Building className="h-3 w-3" />
                           {selectedMeeting.buyer.company_name}
-                          {selectedMeeting.buyer.position && ` (${selectedMeeting.buyer.position})`}
+                          {selectedMeeting.buyer.position &&
+                            ` (${selectedMeeting.buyer.position})`}
                         </p>
                       )}
                     </div>
@@ -286,26 +334,35 @@ export default function CompanyMeetingsPage() {
                     </Label>
                     <div className="p-3 bg-gray-50 rounded-lg space-y-1">
                       <p className="font-medium">
-                        {new Date(selectedMeeting.meeting_time).toLocaleDateString("ko-KR", {
-                          year: "numeric",
-                          month: "long",
-                          day: "numeric",
-                          weekday: "long",
+                        {new Date(
+                          selectedMeeting.meeting_time
+                        ).toLocaleDateString('ko-KR', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                          weekday: 'long',
                         })}
                       </p>
                       <p className="text-sm text-gray-600 flex items-center gap-1">
                         <Clock className="h-3 w-3" />
-                        {new Date(selectedMeeting.meeting_time).toLocaleTimeString("ko-KR", {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}{" "}
-                        -{" "}
-                        {new Date(selectedMeeting.end_time).toLocaleTimeString("ko-KR", {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
+                        {new Date(
+                          selectedMeeting.meeting_time
+                        ).toLocaleTimeString('ko-KR', {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}{' '}
+                        -{' '}
+                        {new Date(selectedMeeting.end_time).toLocaleTimeString(
+                          'ko-KR',
+                          {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          }
+                        )}
                       </p>
-                      <div className="pt-2">{getStatusBadge(selectedMeeting.status)}</div>
+                      <div className="pt-2">
+                        {getStatusBadge(selectedMeeting.status)}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -328,7 +385,9 @@ export default function CompanyMeetingsPage() {
                   <div className="space-y-2">
                     <Label>기업 응답</Label>
                     <div className="p-3 bg-green-50 rounded-lg">
-                      <p className="text-sm">{selectedMeeting.company_response}</p>
+                      <p className="text-sm">
+                        {selectedMeeting.company_response}
+                      </p>
                     </div>
                   </div>
                 )}
@@ -338,13 +397,15 @@ export default function CompanyMeetingsPage() {
                   <div className="space-y-2">
                     <Label>거절 사유</Label>
                     <div className="p-3 bg-red-50 rounded-lg">
-                      <p className="text-sm">{selectedMeeting.rejection_reason}</p>
+                      <p className="text-sm">
+                        {selectedMeeting.rejection_reason}
+                      </p>
                     </div>
                   </div>
                 )}
 
                 {/* 액션 버튼 */}
-                {selectedMeeting.status === "pending" && (
+                {selectedMeeting.status === 'pending' && (
                   <div className="space-y-4">
                     <div className="space-y-2">
                       <Label htmlFor="response">승인 메시지 (선택사항)</Label>
@@ -352,19 +413,27 @@ export default function CompanyMeetingsPage() {
                         id="response"
                         placeholder="바이어에게 전달할 메시지를 입력하세요..."
                         value={responseMessage}
-                        onChange={(e) => setResponseMessage(e.target.value)}
+                        onChange={e => setResponseMessage(e.target.value)}
                       />
                     </div>
 
                     <div className="flex gap-2">
-                      <Button onClick={() => handleMeetingAction(selectedMeeting.id, "confirmed")} className="flex-1">
+                      <Button
+                        onClick={() =>
+                          handleMeetingAction(selectedMeeting.id, 'confirmed')
+                        }
+                        className="flex-1"
+                      >
                         <Check className="mr-2 h-4 w-4" />
                         승인
                       </Button>
 
                       <Dialog>
                         <DialogTrigger asChild>
-                          <Button variant="outline" className="flex-1 bg-transparent">
+                          <Button
+                            variant="outline"
+                            className="flex-1 bg-transparent"
+                          >
                             <X className="mr-2 h-4 w-4" />
                             거절
                           </Button>
@@ -372,7 +441,9 @@ export default function CompanyMeetingsPage() {
                         <DialogContent>
                           <DialogHeader>
                             <DialogTitle>미팅 거절</DialogTitle>
-                            <DialogDescription>미팅을 거절하는 사유를 입력해주세요.</DialogDescription>
+                            <DialogDescription>
+                              미팅을 거절하는 사유를 입력해주세요.
+                            </DialogDescription>
                           </DialogHeader>
                           <div className="space-y-4">
                             <div className="space-y-2">
@@ -381,11 +452,18 @@ export default function CompanyMeetingsPage() {
                                 id="rejection"
                                 placeholder="거절 사유를 입력하세요..."
                                 value={rejectionReason}
-                                onChange={(e) => setRejectionReason(e.target.value)}
+                                onChange={e =>
+                                  setRejectionReason(e.target.value)
+                                }
                               />
                             </div>
                             <Button
-                              onClick={() => handleMeetingAction(selectedMeeting.id, "rejected")}
+                              onClick={() =>
+                                handleMeetingAction(
+                                  selectedMeeting.id,
+                                  'rejected'
+                                )
+                              }
                               variant="destructive"
                               className="w-full"
                             >
@@ -413,29 +491,32 @@ function MeetingList({
 }: {
   meetings: MeetingWithBuyer[]
   onMeetingSelect: (meeting: MeetingWithBuyer) => void
-  onMeetingAction: (meetingId: string, action: "confirmed" | "rejected") => void
+  onMeetingAction: (meetingId: string, action: 'confirmed' | 'rejected') => void
 }) {
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case "pending":
+      case 'pending':
         return (
-          <Badge variant="outline" className="text-yellow-600 border-yellow-600">
+          <Badge
+            variant="outline"
+            className="text-yellow-600 border-yellow-600"
+          >
             대기중
           </Badge>
         )
-      case "confirmed":
+      case 'confirmed':
         return (
           <Badge variant="outline" className="text-green-600 border-green-600">
             승인됨
           </Badge>
         )
-      case "rejected":
+      case 'rejected':
         return (
           <Badge variant="outline" className="text-red-600 border-red-600">
             거절됨
           </Badge>
         )
-      case "completed":
+      case 'completed':
         return (
           <Badge variant="outline" className="text-blue-600 border-blue-600">
             완료됨
@@ -456,13 +537,15 @@ function MeetingList({
 
   return (
     <div className="space-y-4">
-      {meetings.map((meeting) => (
+      {meetings.map(meeting => (
         <Card key={meeting.id} className="hover:shadow-md transition-shadow">
           <CardContent className="p-6">
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-2">
-                  <h3 className="font-semibold text-lg">{meeting.buyer.name}</h3>
+                  <h3 className="font-semibold text-lg">
+                    {meeting.buyer.name}
+                  </h3>
                   {getStatusBadge(meeting.status)}
                 </div>
 
@@ -482,7 +565,8 @@ function MeetingList({
                       <p className="text-sm text-gray-600 flex items-center gap-1">
                         <Building className="h-3 w-3" />
                         {meeting.buyer.company_name}
-                        {meeting.buyer.position && ` (${meeting.buyer.position})`}
+                        {meeting.buyer.position &&
+                          ` (${meeting.buyer.position})`}
                       </p>
                     )}
                   </div>
@@ -490,18 +574,23 @@ function MeetingList({
                   <div className="space-y-1">
                     <p className="text-sm text-gray-600 flex items-center gap-1">
                       <Calendar className="h-3 w-3" />
-                      {new Date(meeting.meeting_time).toLocaleDateString("ko-KR")}
+                      {new Date(meeting.meeting_time).toLocaleDateString(
+                        'ko-KR'
+                      )}
                     </p>
                     <p className="text-sm text-gray-600 flex items-center gap-1">
                       <Clock className="h-3 w-3" />
-                      {new Date(meeting.meeting_time).toLocaleTimeString("ko-KR", {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}{" "}
-                      -{" "}
-                      {new Date(meeting.end_time).toLocaleTimeString("ko-KR", {
-                        hour: "2-digit",
-                        minute: "2-digit",
+                      {new Date(meeting.meeting_time).toLocaleTimeString(
+                        'ko-KR',
+                        {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        }
+                      )}{' '}
+                      -{' '}
+                      {new Date(meeting.end_time).toLocaleTimeString('ko-KR', {
+                        hour: '2-digit',
+                        minute: '2-digit',
                       })}
                     </p>
                   </div>
@@ -510,22 +599,35 @@ function MeetingList({
                 {meeting.buyer_message && (
                   <div className="mb-4">
                     <p className="text-sm text-gray-600 mb-1">메시지:</p>
-                    <p className="text-sm bg-gray-50 p-2 rounded">"{meeting.buyer_message}"</p>
+                    <p className="text-sm bg-gray-50 p-2 rounded">
+                      "{meeting.buyer_message}"
+                    </p>
                   </div>
                 )}
               </div>
 
               <div className="flex flex-col gap-2 ml-4">
-                <Button variant="outline" size="sm" onClick={() => onMeetingSelect(meeting)}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onMeetingSelect(meeting)}
+                >
                   상세보기
                 </Button>
 
-                {meeting.status === "pending" && (
+                {meeting.status === 'pending' && (
                   <div className="flex gap-1">
-                    <Button size="sm" onClick={() => onMeetingAction(meeting.id, "confirmed")}>
+                    <Button
+                      size="sm"
+                      onClick={() => onMeetingAction(meeting.id, 'confirmed')}
+                    >
                       <Check className="h-3 w-3" />
                     </Button>
-                    <Button size="sm" variant="outline" onClick={() => onMeetingAction(meeting.id, "rejected")}>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => onMeetingAction(meeting.id, 'rejected')}
+                    >
                       <X className="h-3 w-3" />
                     </Button>
                   </div>

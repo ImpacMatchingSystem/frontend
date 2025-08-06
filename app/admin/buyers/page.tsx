@@ -1,13 +1,31 @@
-"use client"
+'use client'
 
-import type React from "react"
-import { useState, useEffect } from "react"
-import { User, Search, Filter, Upload, Plus, MoreHorizontal, Edit, Trash2 } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import type React from 'react'
+import { useState, useEffect } from 'react'
+
+import {
+  User,
+  Search,
+  Filter,
+  Upload,
+  Plus,
+  MoreHorizontal,
+  Edit,
+  Trash2,
+} from 'lucide-react'
+
+import { AdminGuard } from '@/components/admin/admin-guard'
+import { ExcelUpload } from '@/components/admin/excel-upload'
+import { AdminHeader } from '@/components/layout/admin-header'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import {
   Dialog,
   DialogContent,
@@ -15,19 +33,25 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
-import { Label } from "@/components/ui/label"
-import { AdminHeader } from "@/components/layout/admin-header"
-import { AdminGuard } from "@/components/admin/admin-guard"
-import { mockApi, type Buyer } from "@/lib/supabase/mock-api"
-import { useToast } from "@/hooks/use-toast"
-import { ExcelUpload } from "@/components/admin/excel-upload"
+} from '@/components/ui/dialog'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+
+import { useToast } from '@/hooks/use-toast'
+
+import { mockApi, type Buyer } from '@/lib/supabase/mock-api'
 
 export default function AdminBuyersPage() {
   const [buyers, setBuyers] = useState<Buyer[]>([])
   const [filteredBuyers, setFilteredBuyers] = useState<Buyer[]>([])
   const [loading, setLoading] = useState(true)
-  const [searchTerm, setSearchTerm] = useState("")
+  const [searchTerm, setSearchTerm] = useState('')
   const [selectedBuyer, setSelectedBuyer] = useState<Buyer | null>(null)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
@@ -49,9 +73,9 @@ export default function AdminBuyersPage() {
       setBuyers(data)
     } catch (error) {
       toast({
-        title: "데이터 로딩 오류",
-        description: "바이어 목록을 불러오는데 실패했습니다.",
-        variant: "destructive",
+        title: '데이터 로딩 오류',
+        description: '바이어 목록을 불러오는데 실패했습니다.',
+        variant: 'destructive',
       })
     } finally {
       setLoading(false)
@@ -63,30 +87,32 @@ export default function AdminBuyersPage() {
 
     if (searchTerm) {
       filtered = filtered.filter(
-        (buyer) =>
+        buyer =>
           buyer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
           buyer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          buyer.company_name?.toLowerCase().includes(searchTerm.toLowerCase()),
+          buyer.company_name?.toLowerCase().includes(searchTerm.toLowerCase())
       )
     }
 
     setFilteredBuyers(filtered)
   }
 
-  const handleCreateBuyer = async (buyerData: Omit<Buyer, "id" | "created_at">) => {
+  const handleCreateBuyer = async (
+    buyerData: Omit<Buyer, 'id' | 'created_at'>
+  ) => {
     try {
       await mockApi.buyers.create(buyerData)
       toast({
-        title: "바이어 생성",
-        description: "새로운 바이어가 성공적으로 생성되었습니다.",
+        title: '바이어 생성',
+        description: '새로운 바이어가 성공적으로 생성되었습니다.',
       })
       setIsCreateDialogOpen(false)
       fetchBuyers()
     } catch (error) {
       toast({
-        title: "생성 실패",
-        description: "바이어 생성 중 오류가 발생했습니다.",
-        variant: "destructive",
+        title: '생성 실패',
+        description: '바이어 생성 중 오류가 발생했습니다.',
+        variant: 'destructive',
       })
     }
   }
@@ -97,17 +123,17 @@ export default function AdminBuyersPage() {
     try {
       await mockApi.buyers.update(selectedBuyer.id, buyerData)
       toast({
-        title: "바이어 정보 수정",
-        description: "바이어 정보가 성공적으로 수정되었습니다.",
+        title: '바이어 정보 수정',
+        description: '바이어 정보가 성공적으로 수정되었습니다.',
       })
       setIsEditDialogOpen(false)
       setSelectedBuyer(null)
       fetchBuyers()
     } catch (error) {
       toast({
-        title: "수정 실패",
-        description: "바이어 정보 수정 중 오류가 발생했습니다.",
-        variant: "destructive",
+        title: '수정 실패',
+        description: '바이어 정보 수정 중 오류가 발생했습니다.',
+        variant: 'destructive',
       })
     }
   }
@@ -118,15 +144,15 @@ export default function AdminBuyersPage() {
     try {
       await mockApi.buyers.delete(buyer.id)
       toast({
-        title: "바이어 삭제",
+        title: '바이어 삭제',
         description: `${buyer.name} 바이어가 삭제되었습니다.`,
       })
       fetchBuyers()
     } catch (error) {
       toast({
-        title: "삭제 실패",
-        description: "바이어 삭제 중 오류가 발생했습니다.",
-        variant: "destructive",
+        title: '삭제 실패',
+        description: '바이어 삭제 중 오류가 발생했습니다.',
+        variant: 'destructive',
       })
     }
   }
@@ -155,12 +181,19 @@ export default function AdminBuyersPage() {
         <div className="container mx-auto px-4 py-8">
           <div className="mb-8 flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">바이어 관리</h1>
-              <p className="text-gray-600">바이어들을 관리하고 현황을 확인하세요.</p>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                바이어 관리
+              </h1>
+              <p className="text-gray-600">
+                바이어들을 관리하고 현황을 확인하세요.
+              </p>
             </div>
 
             <div className="flex gap-2">
-              <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+              <Dialog
+                open={isCreateDialogOpen}
+                onOpenChange={setIsCreateDialogOpen}
+              >
                 <DialogTrigger asChild>
                   <Button>
                     <Plus className="mr-2 h-4 w-4" />새 바이어 추가
@@ -169,13 +202,21 @@ export default function AdminBuyersPage() {
                 <DialogContent className="max-w-2xl">
                   <DialogHeader>
                     <DialogTitle>새 바이어 추가</DialogTitle>
-                    <DialogDescription>새로운 바이어를 시스템에 추가합니다.</DialogDescription>
+                    <DialogDescription>
+                      새로운 바이어를 시스템에 추가합니다.
+                    </DialogDescription>
                   </DialogHeader>
-                  <BuyerForm onSave={handleCreateBuyer} onCancel={() => setIsCreateDialogOpen(false)} />
+                  <BuyerForm
+                    onSave={handleCreateBuyer}
+                    onCancel={() => setIsCreateDialogOpen(false)}
+                  />
                 </DialogContent>
               </Dialog>
 
-              <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
+              <Dialog
+                open={isUploadDialogOpen}
+                onOpenChange={setIsUploadDialogOpen}
+              >
                 <DialogTrigger asChild>
                   <Button variant="outline">
                     <Upload className="mr-2 h-4 w-4" />
@@ -185,7 +226,9 @@ export default function AdminBuyersPage() {
                 <DialogContent className="max-w-4xl">
                   <DialogHeader>
                     <DialogTitle>바이어 Excel 업로드</DialogTitle>
-                    <DialogDescription>Excel 파일을 사용하여 바이어 데이터를 일괄 업로드합니다.</DialogDescription>
+                    <DialogDescription>
+                      Excel 파일을 사용하여 바이어 데이터를 일괄 업로드합니다.
+                    </DialogDescription>
                   </DialogHeader>
                   <ExcelUpload
                     type="buyers"
@@ -215,7 +258,7 @@ export default function AdminBuyersPage() {
                     <Input
                       placeholder="바이어명, 이메일 또는 회사명으로 검색..."
                       value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
+                      onChange={e => setSearchTerm(e.target.value)}
                       className="pl-10"
                     />
                   </div>
@@ -228,7 +271,9 @@ export default function AdminBuyersPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">총 바이어 수</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  총 바이어 수
+                </CardTitle>
                 <User className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
@@ -242,7 +287,9 @@ export default function AdminBuyersPage() {
                 <User className="h-4 w-4 text-blue-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-blue-600">{buyers.filter((b) => b.company_name).length}</div>
+                <div className="text-2xl font-bold text-blue-600">
+                  {buyers.filter(b => b.company_name).length}
+                </div>
               </CardContent>
             </Card>
 
@@ -252,7 +299,9 @@ export default function AdminBuyersPage() {
                 <Filter className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{filteredBuyers.length}</div>
+                <div className="text-2xl font-bold">
+                  {filteredBuyers.length}
+                </div>
               </CardContent>
             </Card>
           </div>
@@ -261,16 +310,20 @@ export default function AdminBuyersPage() {
           <Card>
             <CardHeader>
               <CardTitle>바이어 목록</CardTitle>
-              <CardDescription>등록된 바이어들의 상세 정보를 확인하고 관리하세요.</CardDescription>
+              <CardDescription>
+                등록된 바이어들의 상세 정보를 확인하고 관리하세요.
+              </CardDescription>
             </CardHeader>
             <CardContent>
               {filteredBuyers.length === 0 ? (
                 <div className="text-center py-12">
-                  <p className="text-gray-500 text-lg">검색 조건에 맞는 바이어가 없습니다.</p>
+                  <p className="text-gray-500 text-lg">
+                    검색 조건에 맞는 바이어가 없습니다.
+                  </p>
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {filteredBuyers.map((buyer) => (
+                  {filteredBuyers.map(buyer => (
                     <div
                       key={buyer.id}
                       className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
@@ -282,7 +335,9 @@ export default function AdminBuyersPage() {
 
                         <div className="flex-1">
                           <div className="flex items-center gap-3 mb-1">
-                            <h3 className="font-semibold text-lg">{buyer.name}</h3>
+                            <h3 className="font-semibold text-lg">
+                              {buyer.name}
+                            </h3>
                             {buyer.position && (
                               <Badge variant="outline" className="text-xs">
                                 {buyer.position}
@@ -292,7 +347,9 @@ export default function AdminBuyersPage() {
                           <p className="text-sm text-gray-600">{buyer.email}</p>
                           <div className="flex items-center gap-4 text-sm text-gray-500 mt-1">
                             {buyer.phone && <span>📞 {buyer.phone}</span>}
-                            {buyer.company_name && <span>🏢 {buyer.company_name}</span>}
+                            {buyer.company_name && (
+                              <span>🏢 {buyer.company_name}</span>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -314,7 +371,10 @@ export default function AdminBuyersPage() {
                               <Edit className="mr-2 h-4 w-4" />
                               수정
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleDeleteBuyer(buyer)} className="text-red-600">
+                            <DropdownMenuItem
+                              onClick={() => handleDeleteBuyer(buyer)}
+                              className="text-red-600"
+                            >
                               <Trash2 className="mr-2 h-4 w-4" />
                               삭제
                             </DropdownMenuItem>
@@ -333,7 +393,9 @@ export default function AdminBuyersPage() {
             <DialogContent className="max-w-2xl">
               <DialogHeader>
                 <DialogTitle>바이어 정보 수정</DialogTitle>
-                <DialogDescription>바이어의 상세 정보를 수정할 수 있습니다.</DialogDescription>
+                <DialogDescription>
+                  바이어의 상세 정보를 수정할 수 있습니다.
+                </DialogDescription>
               </DialogHeader>
 
               {selectedBuyer && (
@@ -364,12 +426,12 @@ function BuyerForm({
   onCancel: () => void
 }) {
   const [formData, setFormData] = useState({
-    name: buyer?.name || "",
-    email: buyer?.email || "",
-    password: buyer?.password || "",
-    phone: buyer?.phone || "",
-    company_name: buyer?.company_name || "",
-    position: buyer?.position || "",
+    name: buyer?.name || '',
+    email: buyer?.email || '',
+    password: buyer?.password || '',
+    phone: buyer?.phone || '',
+    company_name: buyer?.company_name || '',
+    position: buyer?.position || '',
   })
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -385,7 +447,9 @@ function BuyerForm({
           <Input
             id="name"
             value={formData.name}
-            onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
+            onChange={e =>
+              setFormData(prev => ({ ...prev, name: e.target.value }))
+            }
             required
           />
         </div>
@@ -396,7 +460,9 @@ function BuyerForm({
             id="email"
             type="email"
             value={formData.email}
-            onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
+            onChange={e =>
+              setFormData(prev => ({ ...prev, email: e.target.value }))
+            }
             required
           />
         </div>
@@ -408,7 +474,9 @@ function BuyerForm({
           id="password"
           type="password"
           value={formData.password}
-          onChange={(e) => setFormData((prev) => ({ ...prev, password: e.target.value }))}
+          onChange={e =>
+            setFormData(prev => ({ ...prev, password: e.target.value }))
+          }
           required
         />
       </div>
@@ -419,7 +487,9 @@ function BuyerForm({
           <Input
             id="phone"
             value={formData.phone}
-            onChange={(e) => setFormData((prev) => ({ ...prev, phone: e.target.value }))}
+            onChange={e =>
+              setFormData(prev => ({ ...prev, phone: e.target.value }))
+            }
           />
         </div>
 
@@ -428,7 +498,9 @@ function BuyerForm({
           <Input
             id="position"
             value={formData.position}
-            onChange={(e) => setFormData((prev) => ({ ...prev, position: e.target.value }))}
+            onChange={e =>
+              setFormData(prev => ({ ...prev, position: e.target.value }))
+            }
           />
         </div>
       </div>
@@ -438,7 +510,9 @@ function BuyerForm({
         <Input
           id="company_name"
           value={formData.company_name}
-          onChange={(e) => setFormData((prev) => ({ ...prev, company_name: e.target.value }))}
+          onChange={e =>
+            setFormData(prev => ({ ...prev, company_name: e.target.value }))
+          }
         />
       </div>
 

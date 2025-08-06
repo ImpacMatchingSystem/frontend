@@ -1,0 +1,61 @@
+{
+  "extends": ["next/core-web-vitals", "next/typescript"],
+  "rules": {
+    // 기본적인 코드 품질 규칙
+    "no-unused-vars": "off", // TypeScript가 처리
+    "@typescript-eslint/no-unused-vars": [
+      "warn",
+      { "argsIgnorePattern": "^_" }
+    ],
+
+    // Import 관련
+    "import/order": [
+      "warn",
+      {
+        "groups": [
+          ["builtin", "external"],
+          ["internal"],
+          ["parent", "sibling", "index"]
+        ],
+        "newlines-between": "always",
+        "pathGroups": [
+          {
+            "pattern": "@/components/**",
+            "group": "internal",
+            "position": "before"
+          },
+          {
+            "pattern": "@/hooks/**",
+            "group": "internal",
+            "position": "after"
+          },
+          {
+            "pattern": "@/lib/**",
+            "group": "internal",
+            "position": "after"
+          },
+          {
+            "pattern": "@/types/**",
+            "group": "internal",
+            "position": "after"
+          }
+        ],
+        "pathGroupsExcludedImportTypes": ["builtin"]
+      }
+    ],
+
+    // React 관련
+    "react/jsx-boolean-value": ["warn", "never"],
+    "react/jsx-curly-brace-presence": [
+      "warn",
+      { "props": "never", "children": "never" }
+    ],
+    "react/self-closing-comp": ["warn", { "component": true, "html": true }],
+
+    // 일반적인 코드 스타일
+    "prefer-const": "warn",
+    "no-var": "error",
+    "object-shorthand": "warn",
+    "prefer-template": "warn"
+  }
+}

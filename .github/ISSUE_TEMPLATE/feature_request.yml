@@ -1,46 +1,46 @@
 name: 🎁 새기능 요청
 description: 새로운 기능이나 개선사항을 제안합니다
-title: "🎁새기능: [기능명]"
-labels: ["🎁 새기능"]
+title: '🎁새기능: [기능명]'
+labels: ['🎁 새기능']
 assignees: []
 
 body:
   - type: textarea
     id: feature-description
     attributes:
-      label: "✨ 기능 설명"
-      description: "어떤 기능을 원하시나요?"
-      placeholder: "예: 사용자가 프로필 사진을 업로드할 수 있는 기능"
+      label: '✨ 기능 설명'
+      description: '어떤 기능을 원하시나요?'
+      placeholder: '예: 사용자가 프로필 사진을 업로드할 수 있는 기능'
     validations:
       required: true
 
   - type: textarea
     id: problem-solution
     attributes:
-      label: "🎯 해결하고 싶은 문제"
-      description: "이 기능이 어떤 문제를 해결하나요?"
-      placeholder: "현재 프로필 사진을 설정할 방법이 없어서 사용자 식별이 어려움"
+      label: '🎯 해결하고 싶은 문제'
+      description: '이 기능이 어떤 문제를 해결하나요?'
+      placeholder: '현재 프로필 사진을 설정할 방법이 없어서 사용자 식별이 어려움'
     validations:
       required: true
 
   - type: dropdown
     id: priority
     attributes:
-      label: "🚨 우선순위"
-      description: "이 기능의 우선순위는 어떻게 생각하시나요?"
+      label: '🚨 우선순위'
+      description: '이 기능의 우선순위는 어떻게 생각하시나요?'
       options:
-        - "🟢 낮음 - 언젠가 있으면 좋을 기능"
-        - "🟡 보통 - 다음 몇 스프린트 내에 구현"
-        - "🟠 높음 - 다음 스프린트에 포함"
-        - "🔴 긴급 - 즉시 구현 필요"
+        - '🟢 낮음 - 언젠가 있으면 좋을 기능'
+        - '🟡 보통 - 다음 몇 스프린트 내에 구현'
+        - '🟠 높음 - 다음 스프린트에 포함'
+        - '🔴 긴급 - 즉시 구현 필요'
     validations:
       required: true
 
   - type: textarea
     id: acceptance-criteria
     attributes:
-      label: "✅ 완료 조건"
-      description: "이 기능이 완료되었다고 판단할 수 있는 조건들"
+      label: '✅ 완료 조건'
+      description: '이 기능이 완료되었다고 판단할 수 있는 조건들'
       placeholder: |
         - [ ] 사용자가 이미지 파일을 선택할 수 있다
         - [ ] 이미지가 적절한 크기로 크롭된다
@@ -50,6 +50,6 @@ body:
   - type: textarea
     id: mockup
     attributes:
-      label: "🎨 UI/UX 아이디어"
-      description: "디자인 아이디어나 참고 이미지가 있다면 첨부해주세요"
-      placeholder: "Figma 링크, 스크린샷, 또는 텍스트로 설명"
+      label: '🎨 UI/UX 아이디어'
+      description: '디자인 아이디어나 참고 이미지가 있다면 첨부해주세요'
+      placeholder: 'Figma 링크, 스크린샷, 또는 텍스트로 설명'

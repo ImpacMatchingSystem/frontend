@@ -1,18 +1,20 @@
-"use client"
+'use client'
 
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { User, LogOut, Calendar, Building2 } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+
+import { useAuthStore } from '@/store/auth-store'
+import { User, LogOut, Calendar, Building2 } from 'lucide-react'
+
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { useAuthStore } from "@/store/auth-store"
+} from '@/components/ui/dropdown-menu'
 
 export function BuyerHeader() {
   const { user, logout } = useAuthStore()
@@ -20,7 +22,7 @@ export function BuyerHeader() {
 
   const handleLogout = () => {
     logout()
-    router.push("/")
+    router.push('/')
   }
 
   return (
@@ -32,21 +34,32 @@ export function BuyerHeader() {
         </Link>
 
         <nav className="hidden md:flex items-center space-x-6">
-          <Link href="/dashboard/buyer/companies" className="text-sm font-medium hover:text-primary">
+          <Link
+            href="/dashboard/buyer/companies"
+            className="text-sm font-medium hover:text-primary"
+          >
             참가기업
           </Link>
-          <Link href="/dashboard/buyer" className="text-sm font-medium hover:text-primary">
+          <Link
+            href="/dashboard/buyer"
+            className="text-sm font-medium hover:text-primary"
+          >
             내 신청내역
           </Link>
         </nav>
 
         <div className="flex items-center space-x-4">
-          {user && user.role === "buyer" ? (
+          {user && user.role === 'buyer' ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                <Button
+                  variant="ghost"
+                  className="relative h-8 w-8 rounded-full"
+                >
                   <Avatar className="h-8 w-8">
-                    <AvatarFallback>{user.name.charAt(0).toUpperCase()}</AvatarFallback>
+                    <AvatarFallback>
+                      {user.name.charAt(0).toUpperCase()}
+                    </AvatarFallback>
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
@@ -54,7 +67,9 @@ export function BuyerHeader() {
                 <div className="flex items-center justify-start gap-2 p-2">
                   <div className="flex flex-col space-y-1 leading-none">
                     <p className="font-medium">{user.name}</p>
-                    <p className="w-[200px] truncate text-sm text-muted-foreground">{user.email}</p>
+                    <p className="w-[200px] truncate text-sm text-muted-foreground">
+                      {user.email}
+                    </p>
                   </div>
                 </div>
                 <DropdownMenuSeparator />

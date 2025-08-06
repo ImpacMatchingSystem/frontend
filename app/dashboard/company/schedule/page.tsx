@@ -1,14 +1,30 @@
-"use client"
+'use client'
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { Calendar, Clock, Save, RotateCcw, Settings } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useToast } from "@/hooks/use-toast"
-import { useAuthStore } from "@/store/auth-store"
-import { mockApi } from "@/lib/supabase/mock-api"
+import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
+
+import { useAuthStore } from '@/store/auth-store'
+import { Calendar, Clock, Save, RotateCcw, Settings } from 'lucide-react'
+
+import { Button } from '@/components/ui/button'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+
+import { useToast } from '@/hooks/use-toast'
+
+import { mockApi } from '@/lib/supabase/mock-api'
 
 export default function CompanySchedulePage() {
   const router = useRouter()
@@ -16,14 +32,16 @@ export default function CompanySchedulePage() {
   const { user } = useAuthStore()
 
   const [meetingDuration, setMeetingDuration] = useState<number>(30)
-  const [availableTimes, setAvailableTimes] = useState<{ [date: string]: string[] }>({})
+  const [availableTimes, setAvailableTimes] = useState<{
+    [date: string]: string[]
+  }>({})
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
 
   // 기업만 접근 가능
   useEffect(() => {
-    if (!user || user.role !== "company") {
-      router.push("/login")
+    if (!user || user.role !== 'company') {
+      router.push('/login')
       return
     }
   }, [user, router])
@@ -39,11 +57,11 @@ export default function CompanySchedulePage() {
           setAvailableTimes(company.available_times || {})
         }
       } catch (error) {
-        console.error("Failed to load schedule:", error)
+        console.error('Failed to load schedule:', error)
         toast({
-          title: "오류",
-          description: "스케줄 정보를 불러오는데 실패했습니다.",
-          variant: "destructive",
+          title: '오류',
+          description: '스케줄 정보를 불러오는데 실패했습니다.',
+          variant: 'destructive',
         })
       } finally {
         setLoading(false)
@@ -61,7 +79,7 @@ export default function CompanySchedulePage() {
     for (let i = 0; i < 14; i++) {
       const date = new Date(today)
       date.setDate(today.getDate() + i)
-      dates.push(date.toISOString().split("T")[0])
+      dates.push(date.toISOString().split('T')[0])
     }
 
     return dates
@@ -75,7 +93,7 @@ export default function CompanySchedulePage() {
 
     for (let hour = startHour; hour < endHour; hour++) {
       for (let minute = 0; minute < 60; minute += duration) {
-        const time = `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`
+        const time = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`
         slots.push(time)
       }
     }
@@ -85,7 +103,7 @@ export default function CompanySchedulePage() {
 
   // 시간 슬롯 토글
   const toggleTimeSlot = (date: string, time: string) => {
-    setAvailableTimes((prev) => {
+    setAvailableTimes(prev => {
       const dateSlots = prev[date] || []
       const isSelected = dateSlots.includes(time)
 
@@ -93,7 +111,7 @@ export default function CompanySchedulePage() {
         // 선택 해제
         return {
           ...prev,
-          [date]: dateSlots.filter((t) => t !== time),
+          [date]: dateSlots.filter(t => t !== time),
         }
       } else {
         // 선택
@@ -109,17 +127,17 @@ export default function CompanySchedulePage() {
   const toggleAllSlotsForDate = (date: string) => {
     const timeSlots = generateTimeSlots(meetingDuration)
     const currentSlots = availableTimes[date] || []
-    const allSelected = timeSlots.every((time) => currentSlots.includes(time))
+    const allSelected = timeSlots.every(time => currentSlots.includes(time))
 
     if (allSelected) {
       // 모두 선택 해제
-      setAvailableTimes((prev) => ({
+      setAvailableTimes(prev => ({
         ...prev,
         [date]: [],
       }))
     } else {
       // 모두 선택
-      setAvailableTimes((prev) => ({
+      setAvailableTimes(prev => ({
         ...prev,
         [date]: timeSlots,
       }))
@@ -130,8 +148,8 @@ export default function CompanySchedulePage() {
   const resetAllSchedules = () => {
     setAvailableTimes({})
     toast({
-      title: "초기화 완료",
-      description: "모든 스케줄이 초기화되었습니다.",
+      title: '초기화 완료',
+      description: '모든 스케줄이 초기화되었습니다.',
     })
   }
 
@@ -141,7 +159,7 @@ export default function CompanySchedulePage() {
     const timeSlots = generateTimeSlots(meetingDuration)
     const newSchedule: { [date: string]: string[] } = {}
 
-    dates.forEach((date) => {
+    dates.forEach(date => {
       const dateObj = new Date(date)
       const dayOfWeek = dateObj.getDay()
 
@@ -153,8 +171,8 @@ export default function CompanySchedulePage() {
 
     setAvailableTimes(newSchedule)
     toast({
-      title: "기본 스케줄 설정 완료",
-      description: "평일 9시-18시로 스케줄이 설정되었습니다.",
+      title: '기본 스케줄 설정 완료',
+      description: '평일 9시-18시로 스케줄이 설정되었습니다.',
     })
   }
 
@@ -169,15 +187,15 @@ export default function CompanySchedulePage() {
       })
 
       toast({
-        title: "저장 완료",
-        description: "스케줄이 성공적으로 저장되었습니다.",
+        title: '저장 완료',
+        description: '스케줄이 성공적으로 저장되었습니다.',
       })
     } catch (error) {
-      console.error("Failed to save schedule:", error)
+      console.error('Failed to save schedule:', error)
       toast({
-        title: "저장 실패",
-        description: "스케줄 저장 중 오류가 발생했습니다.",
-        variant: "destructive",
+        title: '저장 실패',
+        description: '스케줄 저장 중 오류가 발생했습니다.',
+        variant: 'destructive',
       })
     } finally {
       setSaving(false)
@@ -192,10 +210,12 @@ export default function CompanySchedulePage() {
     const newTimeSlots = generateTimeSlots(newDuration)
     const adjustedSchedule: { [date: string]: string[] } = {}
 
-    Object.keys(availableTimes).forEach((date) => {
+    Object.keys(availableTimes).forEach(date => {
       const currentSlots = availableTimes[date] || []
       // 기존 선택된 시간 중 새로운 시간 간격에 맞는 것들만 유지
-      adjustedSchedule[date] = currentSlots.filter((time) => newTimeSlots.includes(time))
+      adjustedSchedule[date] = currentSlots.filter(time =>
+        newTimeSlots.includes(time)
+      )
     })
 
     setAvailableTimes(adjustedSchedule)
@@ -221,7 +241,9 @@ export default function CompanySchedulePage() {
         {/* 헤더 */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">미팅 스케줄 관리</h1>
-          <p className="text-gray-600 mt-2">바이어들이 미팅을 요청할 수 있는 시간을 설정하세요.</p>
+          <p className="text-gray-600 mt-2">
+            바이어들이 미팅을 요청할 수 있는 시간을 설정하세요.
+          </p>
         </div>
 
         {/* 설정 패널 */}
@@ -236,10 +258,14 @@ export default function CompanySchedulePage() {
           <CardContent>
             <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-end">
               <div className="flex-1">
-                <label className="block text-sm font-medium text-gray-700 mb-2">미팅 시간</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  미팅 시간
+                </label>
                 <Select
                   value={meetingDuration.toString()}
-                  onValueChange={(value) => handleDurationChange(Number.parseInt(value))}
+                  onValueChange={value =>
+                    handleDurationChange(Number.parseInt(value))
+                  }
                 >
                   <SelectTrigger className="w-full sm:w-48">
                     <SelectValue />
@@ -253,17 +279,29 @@ export default function CompanySchedulePage() {
               </div>
 
               <div className="flex gap-2">
-                <Button variant="outline" onClick={setDefaultSchedule} className="flex items-center bg-transparent">
+                <Button
+                  variant="outline"
+                  onClick={setDefaultSchedule}
+                  className="flex items-center bg-transparent"
+                >
                   <Calendar className="mr-2 h-4 w-4" />
                   기본 스케줄
                 </Button>
-                <Button variant="outline" onClick={resetAllSchedules} className="flex items-center bg-transparent">
+                <Button
+                  variant="outline"
+                  onClick={resetAllSchedules}
+                  className="flex items-center bg-transparent"
+                >
                   <RotateCcw className="mr-2 h-4 w-4" />
                   전체 초기화
                 </Button>
-                <Button onClick={saveSchedule} disabled={saving} className="flex items-center">
+                <Button
+                  onClick={saveSchedule}
+                  disabled={saving}
+                  className="flex items-center"
+                >
                   <Save className="mr-2 h-4 w-4" />
-                  {saving ? "저장 중..." : "저장"}
+                  {saving ? '저장 중...' : '저장'}
                 </Button>
               </div>
             </div>
@@ -272,12 +310,18 @@ export default function CompanySchedulePage() {
 
         {/* 스케줄 그리드 */}
         <div className="space-y-6">
-          {dates.map((date) => {
+          {dates.map(date => {
             const dateObj = new Date(date)
-            const dayOfWeek = dateObj.toLocaleDateString("ko-KR", { weekday: "long" })
+            const dayOfWeek = dateObj.toLocaleDateString('ko-KR', {
+              weekday: 'long',
+            })
             const dateSlots = availableTimes[date] || []
-            const allSelected = timeSlots.every((time) => dateSlots.includes(time))
-            const someSelected = timeSlots.some((time) => dateSlots.includes(time))
+            const allSelected = timeSlots.every(time =>
+              dateSlots.includes(time)
+            )
+            const someSelected = timeSlots.some(time =>
+              dateSlots.includes(time)
+            )
 
             return (
               <Card key={date}>
@@ -285,32 +329,40 @@ export default function CompanySchedulePage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <CardTitle className="text-lg">
-                        {dateObj.toLocaleDateString("ko-KR", {
-                          month: "long",
-                          day: "numeric",
-                        })}{" "}
+                        {dateObj.toLocaleDateString('ko-KR', {
+                          month: 'long',
+                          day: 'numeric',
+                        })}{' '}
                         ({dayOfWeek})
                       </CardTitle>
-                      <CardDescription>{dateSlots.length}개 시간대 선택됨</CardDescription>
+                      <CardDescription>
+                        {dateSlots.length}개 시간대 선택됨
+                      </CardDescription>
                     </div>
                     <Button
-                      variant={allSelected ? "default" : someSelected ? "secondary" : "outline"}
+                      variant={
+                        allSelected
+                          ? 'default'
+                          : someSelected
+                            ? 'secondary'
+                            : 'outline'
+                      }
                       size="sm"
                       onClick={() => toggleAllSlotsForDate(date)}
                     >
-                      {allSelected ? "전체 해제" : "전체 선택"}
+                      {allSelected ? '전체 해제' : '전체 선택'}
                     </Button>
                   </div>
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
-                    {timeSlots.map((time) => {
+                    {timeSlots.map(time => {
                       const isSelected = dateSlots.includes(time)
 
                       return (
                         <Button
                           key={time}
-                          variant={isSelected ? "default" : "outline"}
+                          variant={isSelected ? 'default' : 'outline'}
                           size="sm"
                           onClick={() => toggleTimeSlot(date, time)}
                           className="text-xs"
@@ -338,18 +390,27 @@ export default function CompanySchedulePage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="text-center p-4 bg-blue-50 rounded-lg">
                 <div className="text-2xl font-bold text-blue-600">
-                  {Object.keys(availableTimes).filter((date) => availableTimes[date].length > 0).length}
+                  {
+                    Object.keys(availableTimes).filter(
+                      date => availableTimes[date].length > 0
+                    ).length
+                  }
                 </div>
                 <div className="text-sm text-gray-600">활성 날짜</div>
               </div>
               <div className="text-center p-4 bg-green-50 rounded-lg">
                 <div className="text-2xl font-bold text-green-600">
-                  {Object.values(availableTimes).reduce((total, slots) => total + slots.length, 0)}
+                  {Object.values(availableTimes).reduce(
+                    (total, slots) => total + slots.length,
+                    0
+                  )}
                 </div>
                 <div className="text-sm text-gray-600">총 시간대</div>
               </div>
               <div className="text-center p-4 bg-purple-50 rounded-lg">
-                <div className="text-2xl font-bold text-purple-600">{meetingDuration}분</div>
+                <div className="text-2xl font-bold text-purple-600">
+                  {meetingDuration}분
+                </div>
                 <div className="text-sm text-gray-600">미팅 시간</div>
               </div>
             </div>

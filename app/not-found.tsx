@@ -1,9 +1,17 @@
-"use client"
+'use client'
 
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { FileQuestion, Home, ArrowLeft } from "lucide-react"
+import Link from 'next/link'
+
+import { FileQuestion, Home, ArrowLeft } from 'lucide-react'
+
+import { Button } from '@/components/ui/button'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 
 export default function NotFound() {
   return (
@@ -26,8 +34,8 @@ export default function NotFound() {
                 홈으로 이동
               </Link>
             </Button>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => window.history.back()}
               className="flex-1"
             >

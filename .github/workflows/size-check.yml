@@ -1,0 +1,42 @@
+name: 📊 Bundle Size Check
+
+on:
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  size-check:
+    name: 📊 Check Bundle Size
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📦 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📥 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: 📦 Install dependencies
+        run: npm ci
+
+      - name: 🏗️ Build project
+        run: npm run build
+        env:
+          NODE_ENV: production
+
+      - name: 📊 Analyze bundle size
+        run: |
+          echo "## 📊 Bundle Size Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ -d ".next" ]; then
+            # Next.js 빌드 사이즈 확인
+            ls -la .next/static/chunks/ | head -10 >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "✅ Build completed successfully!" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Build failed!" >> $GITHUB_STEP_SUMMARY
+          fi

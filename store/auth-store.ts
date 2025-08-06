@@ -1,11 +1,11 @@
-import { create } from "zustand"
-import { persist } from "zustand/middleware"
+import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
 
 export interface AuthUser {
   id: string
   email: string
   name: string
-  role: "company" | "admin" | "buyer"
+  role: 'company' | 'admin' | 'buyer'
 }
 
 interface AuthState {
@@ -17,16 +17,16 @@ interface AuthState {
 
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set) => ({
+    set => ({
       user: null,
-      setUser: (user) => set({ user }),
+      setUser: user => set({ user }),
       clearUser: () => set({ user: null }),
       logout: () => set({ user: null }),
     }),
     {
-      name: "auth-storage",
-    },
-  ),
+      name: 'auth-storage',
+    }
+  )
 )
 
 interface AppState {
@@ -34,7 +34,7 @@ interface AppState {
   setSelectedEvent: (eventId: string | null) => void
 }
 
-export const useAppStore = create<AppState>((set) => ({
+export const useAppStore = create<AppState>(set => ({
   selectedEvent: null,
-  setSelectedEvent: (eventId) => set({ selectedEvent: eventId }),
+  setSelectedEvent: eventId => set({ selectedEvent: eventId }),
 }))

@@ -1,19 +1,22 @@
-"use client"
+'use client'
 
-import { useState } from "react"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { Building2, Menu, X, User, LogOut } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useState } from 'react'
+
+import { useAuthStore } from '@/store/auth-store'
+import { Building2, Menu, X, User, LogOut } from 'lucide-react'
+
+import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { useAuthStore } from "@/store/auth-store"
-import { useToast } from "@/hooks/use-toast"
+} from '@/components/ui/dropdown-menu'
+
+import { useToast } from '@/hooks/use-toast'
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -23,25 +26,25 @@ export function Header() {
 
   const handleSignOut = () => {
     clearUser()
-    router.push("/")
+    router.push('/')
     toast({
-      title: "로그아웃 완료",
-      description: "성공적으로 로그아웃되었습니다.",
+      title: '로그아웃 완료',
+      description: '성공적으로 로그아웃되었습니다.',
     })
   }
 
   const getDashboardLink = () => {
-    if (!user) return "/"
+    if (!user) return '/'
 
     switch (user.role) {
-      case "company":
-        return "/dashboard/company"
-      case "buyer":
-        return "/dashboard/buyer"
-      case "admin":
-        return "/admin/dashboard"
+      case 'company':
+        return '/dashboard/company'
+      case 'buyer':
+        return '/dashboard/buyer'
+      case 'admin':
+        return '/admin/dashboard'
       default:
-        return "/"
+        return '/'
     }
   }
 
@@ -52,31 +55,45 @@ export function Header() {
           {/* 로고 */}
           <Link href="/" className="flex items-center space-x-2">
             <Building2 className="h-8 w-8 text-primary" />
-            <span className="text-xl font-bold text-gray-900">ImpacMatching</span>
+            <span className="text-xl font-bold text-gray-900">
+              ImpacMatching
+            </span>
           </Link>
 
           {/* 데스크톱 네비게이션 */}
           <nav className="hidden md:flex items-center space-x-8">
-            <Link href="/dashboard/buyer/companies" className="text-gray-600 hover:text-gray-900 transition-colors">
+            <Link
+              href="/dashboard/buyer/companies"
+              className="text-gray-600 hover:text-gray-900 transition-colors"
+            >
               기업 목록
             </Link>
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="flex items-center space-x-2">
+                  <Button
+                    variant="ghost"
+                    className="flex items-center space-x-2"
+                  >
                     <User className="h-4 w-4" />
                     <span>{user.name}</span>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="bg-white w-48">
                   <DropdownMenuItem asChild>
-                    <Link href={getDashboardLink()} className="flex items-center">
+                    <Link
+                      href={getDashboardLink()}
+                      className="flex items-center"
+                    >
                       <User className="mr-2 h-4 w-4" />
                       대시보드
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleSignOut} className="text-red-600">
+                  <DropdownMenuItem
+                    onClick={handleSignOut}
+                    className="text-red-600"
+                  >
                     <LogOut className="mr-2 h-4 w-4" />
                     로그아웃
                   </DropdownMenuItem>
@@ -93,8 +110,16 @@ export function Header() {
 
           {/* 모바일 메뉴 버튼 */}
           <div className="md:hidden">
-            <Button variant="ghost" size="sm" onClick={() => setIsMenuOpen(!isMenuOpen)}>
-              {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+            >
+              {isMenuOpen ? (
+                <X className="h-6 w-6" />
+              ) : (
+                <Menu className="h-6 w-6" />
+              )}
             </Button>
           </div>
         </div>

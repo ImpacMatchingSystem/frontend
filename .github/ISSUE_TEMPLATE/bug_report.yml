@@ -1,24 +1,24 @@
 name: 🐛 버그 리포트
 description: 버그나 문제를 신고합니다
-title: "🐛오류: [버그 설명]"
-labels: ["🐛 오류"]
+title: '🐛오류: [버그 설명]'
+labels: ['🐛 오류']
 assignees: []
 
 body:
   - type: textarea
     id: bug-description
     attributes:
-      label: "🔍 버그 설명"
-      description: "어떤 문제가 발생했나요?"
-      placeholder: "로그인 버튼을 클릭하면 페이지가 새로고침되지만 로그인되지 않습니다"
+      label: '🔍 버그 설명'
+      description: '어떤 문제가 발생했나요?'
+      placeholder: '로그인 버튼을 클릭하면 페이지가 새로고침되지만 로그인되지 않습니다'
     validations:
       required: true
 
   - type: textarea
     id: reproduction-steps
     attributes:
-      label: "🔄 재현 단계"
-      description: "버그를 재현하는 방법을 단계별로 설명해주세요"
+      label: '🔄 재현 단계'
+      description: '버그를 재현하는 방법을 단계별로 설명해주세요'
       placeholder: |
         1. 메인 페이지로 이동
         2. 로그인 버튼 클릭
@@ -31,46 +31,46 @@ body:
   - type: textarea
     id: expected-behavior
     attributes:
-      label: "✅ 예상 동작"
-      description: "어떻게 동작해야 한다고 생각하시나요?"
-      placeholder: "로그인 후 대시보드 페이지로 리디렉션되어야 합니다"
+      label: '✅ 예상 동작'
+      description: '어떻게 동작해야 한다고 생각하시나요?'
+      placeholder: '로그인 후 대시보드 페이지로 리디렉션되어야 합니다'
     validations:
       required: true
 
   - type: textarea
     id: actual-behavior
     attributes:
-      label: "❌ 실제 동작"
-      description: "실제로 어떻게 동작하나요?"
-      placeholder: "페이지가 새로고침되고 로그인 폼이 그대로 남아있습니다"
+      label: '❌ 실제 동작'
+      description: '실제로 어떻게 동작하나요?'
+      placeholder: '페이지가 새로고침되고 로그인 폼이 그대로 남아있습니다'
     validations:
       required: true
 
   - type: dropdown
     id: severity
     attributes:
-      label: "🚨 심각도"
-      description: "이 버그의 심각도는 어느 정도인가요?"
+      label: '🚨 심각도'
+      description: '이 버그의 심각도는 어느 정도인가요?'
       options:
-        - "🔴 치명적 - 서비스 사용 불가"
-        - "🟠 높음 - 주요 기능 동작 안 함"
-        - "🟡 보통 - 일부 기능에 문제"
-        - "🟢 낮음 - 사소한 UI 문제"
+        - '🔴 치명적 - 서비스 사용 불가'
+        - '🟠 높음 - 주요 기능 동작 안 함'
+        - '🟡 보통 - 일부 기능에 문제'
+        - '🟢 낮음 - 사소한 UI 문제'
     validations:
       required: true
 
   - type: textarea
     id: screenshots
     attributes:
-      label: "📸 스크린샷/동영상"
-      description: "버그를 보여주는 스크린샷이나 동영상이 있다면 첨부해주세요"
-      placeholder: "파일을 드래그하거나 붙여넣기하세요"
+      label: '📸 스크린샷/동영상'
+      description: '버그를 보여주는 스크린샷이나 동영상이 있다면 첨부해주세요'
+      placeholder: '파일을 드래그하거나 붙여넣기하세요'
 
   - type: textarea
     id: console-errors
     attributes:
-      label: "🚫 콘솔 에러"
-      description: "브라우저 콘솔에 에러 메시지가 있다면 복사해서 붙여넣어주세요"
+      label: '🚫 콘솔 에러'
+      description: '브라우저 콘솔에 에러 메시지가 있다면 복사해서 붙여넣어주세요'
       render: shell
       placeholder: |
         Uncaught TypeError: Cannot read property 'value' of null
@@ -80,6 +80,6 @@ body:
   - type: textarea
     id: additional-context
     attributes:
-      label: "📝 추가 정보"
-      description: "다른 도움이 될 만한 정보가 있다면 알려주세요"
-      placeholder: "특정 조건에서만 발생, 다른 브라우저에서는 정상 동작 등"
+      label: '📝 추가 정보'
+      description: '다른 도움이 될 만한 정보가 있다면 알려주세요'
+      placeholder: '특정 조건에서만 발생, 다른 브라우저에서는 정상 동작 등'

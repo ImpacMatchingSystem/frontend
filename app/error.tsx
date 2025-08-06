@@ -1,9 +1,17 @@
-"use client"
+'use client'
 
-import { useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { AlertTriangle, RefreshCw, Home } from "lucide-react"
+import { useEffect } from 'react'
+
+import { AlertTriangle, RefreshCw, Home } from 'lucide-react'
+
+import { Button } from '@/components/ui/button'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 
 export default function Error({
   error,
@@ -13,7 +21,7 @@ export default function Error({
   reset: () => void
 }) {
   useEffect(() => {
-    console.error("Application error:", error)
+    console.error('Application error:', error)
   }, [error])
 
   return (
@@ -29,7 +37,7 @@ export default function Error({
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {process.env.NODE_ENV === "development" && (
+          {process.env.NODE_ENV === 'development' && (
             <div className="rounded-md bg-muted p-3">
               <p className="text-xs font-mono text-muted-foreground">
                 {error.message}
@@ -37,16 +45,12 @@ export default function Error({
             </div>
           )}
           <div className="flex flex-col gap-2 sm:flex-row">
-            <Button 
-              onClick={reset} 
-              className="flex-1"
-              variant="default"
-            >
+            <Button onClick={reset} className="flex-1" variant="default">
               <RefreshCw className="mr-2 h-4 w-4" />
               다시 시도
             </Button>
-            <Button 
-              onClick={() => window.location.href = '/'} 
+            <Button
+              onClick={() => (window.location.href = '/')}
               variant="outline"
               className="flex-1"
             >

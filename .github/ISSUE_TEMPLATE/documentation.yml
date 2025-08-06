@@ -1,31 +1,31 @@
 name: 📝 문서 작업
 description: 문서 추가나 개선을 요청합니다
-title: "📝문서: [문서명]"
-labels: ["📝 문서"]
+title: '📝문서: [문서명]'
+labels: ['📝 문서']
 assignees: []
 
 body:
   - type: dropdown
     id: doc-type
     attributes:
-      label: "📚 문서 유형"
+      label: '📚 문서 유형'
       options:
-        - "📖 사용자 가이드"
-        - "🔧 개발자 문서"
-        - "📊 API 문서" 
-        - "🏗️ 설치/배포 가이드"
-        - "❓ FAQ"
-        - "🎯 튜토리얼"
-        - "📋 README 업데이트"
-        - "기타"
+        - '📖 사용자 가이드'
+        - '🔧 개발자 문서'
+        - '📊 API 문서'
+        - '🏗️ 설치/배포 가이드'
+        - '❓ FAQ'
+        - '🎯 튜토리얼'
+        - '📋 README 업데이트'
+        - '기타'
     validations:
       required: true
 
   - type: textarea
     id: doc-description
     attributes:
-      label: "📄 문서 내용"
-      description: "어떤 내용의 문서가 필요한가요?"
-      placeholder: "새로운 결제 API 사용 방법에 대한 개발자 가이드"
+      label: '📄 문서 내용'
+      description: '어떤 내용의 문서가 필요한가요?'
+      placeholder: '새로운 결제 API 사용 방법에 대한 개발자 가이드'
     validations:
       required: true

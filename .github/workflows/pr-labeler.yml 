@@ -1,0 +1,84 @@
+name: 🏷️ PR Auto Labeler
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize]
+
+jobs:
+  label-pr:
+    name: 🏷️ Auto Label PR
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      
+    steps:
+      - name: 📦 Checkout code
+        uses: actions/checkout@v4
+        
+      - name: 🏷️ Add labels based on files changed
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: files } = await github.rest.pulls.listFiles({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+            });
+            
+            const labels = new Set();
+            
+            // 파일 경로에 따른 라벨 추가
+            files.forEach(file => {
+              const path = file.filename;
+              
+              if (path.includes('src/components/')) {
+                labels.add('🎨 UI');
+              }
+              if (path.includes('src/api/') || path.includes('route.ts')) {
+                labels.add('⚡ API');
+              }
+              if (path.includes('src/lib/') || path.includes('src/hooks/')) {
+                labels.add('🔧 Utils');
+              }
+              if (path.includes('src/types/')) {
+                labels.add('📋 Types');
+              }
+              if (path.includes('.md') || path.includes('docs/')) {
+                labels.add('📝 문서');
+              }
+              if (path.includes('src/app/admin/')) {
+                labels.add('👑 Admin');
+              }
+              if (path.includes('package.json') || path.includes('package-lock.json')) {
+                labels.add('📦 Dependencies');
+              }
+              if (path.includes('.github/')) {
+                labels.add('🤖 CI/CD');
+              }
+            });
+            
+            // PR 제목에 따른 라벨 추가
+            const title = context.payload.pull_request.title;
+            if (title.includes('🎁새기능')) {
+              labels.add('🎁 새기능');
+            } else if (title.includes('🛠개선')) {
+              labels.add('🛠 개선');
+            } else if (title.includes('🐛오류')) {
+              labels.add('🐛 오류');
+            } else if (title.includes('🎨리팩토링')) {
+              labels.add('🎨 리팩토링');
+            } else if (title.includes('📝문서')) {
+              labels.add('📝 문서');
+            } else if (title.includes('🚀배포')) {
+              labels.add('🚀 배포');
+            }
+            
+            // 라벨 적용
+            if (labels.size > 0) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                labels: Array.from(labels),
+              });
+            }

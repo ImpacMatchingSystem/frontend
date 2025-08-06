@@ -1,18 +1,20 @@
-"use client"
+'use client'
 
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { Shield, LogOut, BarChart3, Users, Calendar } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+
+import { useAuthStore } from '@/store/auth-store'
+import { Shield, LogOut, BarChart3, Users, Calendar } from 'lucide-react'
+
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { useAuthStore } from "@/store/auth-store"
+} from '@/components/ui/dropdown-menu'
 
 export function AdminHeader() {
   const { user, logout } = useAuthStore()
@@ -20,7 +22,7 @@ export function AdminHeader() {
 
   const handleLogout = () => {
     logout()
-    router.push("/admin/login")
+    router.push('/admin/login')
   }
 
   return (
@@ -32,38 +34,64 @@ export function AdminHeader() {
         </Link>
 
         <nav className="hidden md:flex items-center space-x-6 bg-white">
-          <Link href="/admin/dashboard" className="text-sm font-medium hover:text-primary">
+          <Link
+            href="/admin/dashboard"
+            className="text-sm font-medium hover:text-primary"
+          >
             대시보드
           </Link>
-          <Link href="/admin/events" className="text-sm font-medium hover:text-primary">
+          <Link
+            href="/admin/events"
+            className="text-sm font-medium hover:text-primary"
+          >
             행사 관리
           </Link>
-          <Link href="/admin/companies" className="text-sm font-medium hover:text-primary">
+          <Link
+            href="/admin/companies"
+            className="text-sm font-medium hover:text-primary"
+          >
             기업 관리
           </Link>
-          <Link href="/admin/buyers" className="text-sm font-medium hover:text-primary">
+          <Link
+            href="/admin/buyers"
+            className="text-sm font-medium hover:text-primary"
+          >
             바이어 관리
           </Link>
-          <Link href="/admin/meetings" className="text-sm font-medium hover:text-primary">
+          <Link
+            href="/admin/meetings"
+            className="text-sm font-medium hover:text-primary"
+          >
             미팅 현황
           </Link>
         </nav>
 
         <div className="flex items-center space-x-4">
-          {user && user.role === "admin" ? (
+          {user && user.role === 'admin' ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                <Button
+                  variant="ghost"
+                  className="relative h-8 w-8 rounded-full"
+                >
                   <Avatar className="h-8 w-8">
-                    <AvatarFallback>{user.name.charAt(0).toUpperCase()}</AvatarFallback>
+                    <AvatarFallback>
+                      {user.name.charAt(0).toUpperCase()}
+                    </AvatarFallback>
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56 bg-white" align="end" forceMount>
+              <DropdownMenuContent
+                className="w-56 bg-white"
+                align="end"
+                forceMount
+              >
                 <div className="flex items-center justify-start gap-2 p-2">
                   <div className="flex flex-col space-y-1 leading-none">
                     <p className="font-medium">{user.name}</p>
-                    <p className="w-[200px] truncate text-sm text-muted-foreground">{user.email}</p>
+                    <p className="w-[200px] truncate text-sm text-muted-foreground">
+                      {user.email}
+                    </p>
                   </div>
                 </div>
                 <DropdownMenuSeparator />

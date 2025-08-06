@@ -1,15 +1,25 @@
-"use client"
+'use client'
 
-import { useState, useEffect } from "react"
-import { Calendar, Clock, Users, CheckCircle, AlertCircle } from "lucide-react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Header } from "@/components/layout/header"
-import { mockApi, type Meeting, type Buyer } from "@/lib/supabase/mock-api"
-import { useAuthStore } from "@/store/auth-store"
-import { useToast } from "@/hooks/use-toast"
-import Link from "next/link"
+import Link from 'next/link'
+import { useState, useEffect } from 'react'
+
+import { useAuthStore } from '@/store/auth-store'
+import { Calendar, Clock, Users, CheckCircle, AlertCircle } from 'lucide-react'
+
+import { Header } from '@/components/layout/header'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+
+import { useToast } from '@/hooks/use-toast'
+
+import { mockApi, type Meeting, type Buyer } from '@/lib/supabase/mock-api'
 
 interface DashboardStats {
   totalMeetings: number
@@ -56,71 +66,86 @@ export default function CompanyDashboard() {
 
       // 미팅과 바이어 정보 결합
       const meetingsWithBuyers: MeetingWithBuyer[] = meetings
-        .map((meeting) => {
-          const buyer = buyers.find((b) => b.id === meeting.buyer_id)
+        .map(meeting => {
+          const buyer = buyers.find(b => b.id === meeting.buyer_id)
           return { ...meeting, buyer: buyer! }
         })
-        .filter((m) => m.buyer)
+        .filter(m => m.buyer)
 
       const today = new Date().toDateString()
 
       const stats = {
         totalMeetings: meetingsWithBuyers.length,
-        pendingMeetings: meetingsWithBuyers.filter((m) => m.status === "pending").length,
-        confirmedMeetings: meetingsWithBuyers.filter((m) => m.status === "confirmed").length,
-        todayMeetings: meetingsWithBuyers.filter((m) => new Date(m.meeting_time).toDateString() === today).length,
+        pendingMeetings: meetingsWithBuyers.filter(m => m.status === 'pending')
+          .length,
+        confirmedMeetings: meetingsWithBuyers.filter(
+          m => m.status === 'confirmed'
+        ).length,
+        todayMeetings: meetingsWithBuyers.filter(
+          m => new Date(m.meeting_time).toDateString() === today
+        ).length,
       }
 
       setStats(stats)
       setRecentMeetings(meetingsWithBuyers.slice(0, 5))
-      setTodayMeetings(meetingsWithBuyers.filter((m) => new Date(m.meeting_time).toDateString() === today))
+      setTodayMeetings(
+        meetingsWithBuyers.filter(
+          m => new Date(m.meeting_time).toDateString() === today
+        )
+      )
     } catch (error) {
       toast({
-        title: "데이터 로딩 오류",
-        description: "대시보드 데이터를 불러오는데 실패했습니다.",
-        variant: "destructive",
+        title: '데이터 로딩 오류',
+        description: '대시보드 데이터를 불러오는데 실패했습니다.',
+        variant: 'destructive',
       })
     } finally {
       setLoading(false)
     }
   }
 
-  const handleMeetingAction = async (meetingId: string, action: "confirmed" | "rejected") => {
+  const handleMeetingAction = async (
+    meetingId: string,
+    action: 'confirmed' | 'rejected'
+  ) => {
     try {
       await mockApi.meetings.update(meetingId, {
         status: action,
       })
 
       toast({
-        title: action === "confirmed" ? "미팅 승인" : "미팅 거절",
-        description: `미팅이 ${action === "confirmed" ? "승인" : "거절"}되었습니다.`,
+        title: action === 'confirmed' ? '미팅 승인' : '미팅 거절',
+        description: `미팅이 ${action === 'confirmed' ? '승인' : '거절'}되었습니다.`,
       })
 
       fetchDashboardData()
     } catch (error) {
       toast({
-        title: "오류",
-        description: "미팅 상태 변경에 실패했습니다.",
-        variant: "destructive",
+        title: '오류',
+        description: '미팅 상태 변경에 실패했습니다.',
+        variant: 'destructive',
       })
     }
   }
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case "pending":
+      case 'pending':
         return (
-          <Badge variant="outline" className="text-yellow-600 border-yellow-600">
+          <Badge
+            variant="outline"
+            className="text-yellow-600 border-yellow-600"
+          >
             대기중
           </Badge>
         )
-      case "confirmed":
+      case 'confirmed':
         return (
           <Badge variant="outline" className="text-green-600 border-green-600">
             승인됨
           </Badge>
         )
-      case "rejected":
+      case 'rejected':
         return (
           <Badge variant="outline" className="text-red-600 border-red-600">
             거절됨
@@ -152,14 +177,18 @@ export default function CompanyDashboard() {
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">대시보드</h1>
-          <p className="text-gray-600">안녕하세요, {user?.name}님! 오늘의 미팅 현황을 확인해보세요.</p>
+          <p className="text-gray-600">
+            안녕하세요, {user?.name}님! 오늘의 미팅 현황을 확인해보세요.
+          </p>
         </div>
 
         {/* 통계 카드 */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">총 미팅 신청</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                총 미팅 신청
+              </CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -170,11 +199,15 @@ export default function CompanyDashboard() {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">대기중인 신청</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                대기중인 신청
+              </CardTitle>
               <AlertCircle className="h-4 w-4 text-yellow-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-yellow-600">{stats.pendingMeetings}</div>
+              <div className="text-2xl font-bold text-yellow-600">
+                {stats.pendingMeetings}
+              </div>
               <p className="text-xs text-muted-foreground">승인 대기중</p>
             </CardContent>
           </Card>
@@ -185,7 +218,9 @@ export default function CompanyDashboard() {
               <CheckCircle className="h-4 w-4 text-green-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-600">{stats.confirmedMeetings}</div>
+              <div className="text-2xl font-bold text-green-600">
+                {stats.confirmedMeetings}
+              </div>
               <p className="text-xs text-muted-foreground">승인된 미팅</p>
             </CardContent>
           </Card>
@@ -214,18 +249,26 @@ export default function CompanyDashboard() {
             </CardHeader>
             <CardContent>
               {todayMeetings.length === 0 ? (
-                <p className="text-gray-500 text-center py-4">오늘 예정된 미팅이 없습니다.</p>
+                <p className="text-gray-500 text-center py-4">
+                  오늘 예정된 미팅이 없습니다.
+                </p>
               ) : (
                 <div className="space-y-4">
-                  {todayMeetings.map((meeting) => (
-                    <div key={meeting.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  {todayMeetings.map(meeting => (
+                    <div
+                      key={meeting.id}
+                      className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                    >
                       <div>
                         <p className="font-medium">{meeting.buyer.name}</p>
                         <p className="text-sm text-gray-600">
-                          {new Date(meeting.meeting_time).toLocaleTimeString("ko-KR", {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
+                          {new Date(meeting.meeting_time).toLocaleTimeString(
+                            'ko-KR',
+                            {
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            }
+                          )}
                         </p>
                       </div>
                       {getStatusBadge(meeting.status)}
@@ -243,41 +286,66 @@ export default function CompanyDashboard() {
                 <Clock className="h-5 w-5" />
                 최근 미팅 신청
               </CardTitle>
-              <CardDescription>최근에 받은 미팅 신청 목록입니다</CardDescription>
+              <CardDescription>
+                최근에 받은 미팅 신청 목록입니다
+              </CardDescription>
             </CardHeader>
             <CardContent>
               {recentMeetings.length === 0 ? (
-                <p className="text-gray-500 text-center py-4">최근 미팅 신청이 없습니다.</p>
+                <p className="text-gray-500 text-center py-4">
+                  최근 미팅 신청이 없습니다.
+                </p>
               ) : (
                 <div className="space-y-4">
-                  {recentMeetings.map((meeting) => (
-                    <div key={meeting.id} className="border-b pb-4 last:border-b-0">
+                  {recentMeetings.map(meeting => (
+                    <div
+                      key={meeting.id}
+                      className="border-b pb-4 last:border-b-0"
+                    >
                       <div className="flex items-start justify-between mb-2">
                         <div>
                           <p className="font-medium">{meeting.buyer.name}</p>
-                          <p className="text-sm text-gray-600">{meeting.buyer.company_name || meeting.buyer.email}</p>
+                          <p className="text-sm text-gray-600">
+                            {meeting.buyer.company_name || meeting.buyer.email}
+                          </p>
                           <p className="text-sm text-gray-500">
-                            {new Date(meeting.meeting_time).toLocaleDateString("ko-KR")}{" "}
-                            {new Date(meeting.meeting_time).toLocaleTimeString("ko-KR", {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
+                            {new Date(meeting.meeting_time).toLocaleDateString(
+                              'ko-KR'
+                            )}{' '}
+                            {new Date(meeting.meeting_time).toLocaleTimeString(
+                              'ko-KR',
+                              {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                              }
+                            )}
                           </p>
                         </div>
                         {getStatusBadge(meeting.status)}
                       </div>
 
-                      {meeting.buyer_message && <p className="text-sm text-gray-600 mb-2">"{meeting.buyer_message}"</p>}
+                      {meeting.buyer_message && (
+                        <p className="text-sm text-gray-600 mb-2">
+                          "{meeting.buyer_message}"
+                        </p>
+                      )}
 
-                      {meeting.status === "pending" && (
+                      {meeting.status === 'pending' && (
                         <div className="flex gap-2">
-                          <Button size="sm" onClick={() => handleMeetingAction(meeting.id, "confirmed")}>
+                          <Button
+                            size="sm"
+                            onClick={() =>
+                              handleMeetingAction(meeting.id, 'confirmed')
+                            }
+                          >
                             승인
                           </Button>
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => handleMeetingAction(meeting.id, "rejected")}
+                            onClick={() =>
+                              handleMeetingAction(meeting.id, 'rejected')
+                            }
                           >
                             거절
                           </Button>
@@ -296,7 +364,9 @@ export default function CompanyDashboard() {
           <Card>
             <CardHeader>
               <CardTitle>빠른 액션</CardTitle>
-              <CardDescription>자주 사용하는 기능들에 빠르게 접근하세요</CardDescription>
+              <CardDescription>
+                자주 사용하는 기능들에 빠르게 접근하세요
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="flex flex-wrap gap-4">

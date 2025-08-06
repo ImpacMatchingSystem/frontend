@@ -1,61 +1,61 @@
 name: 🛠 개선 제안
 description: 기존 기능의 개선을 제안합니다
-title: "🛠개선: [개선할 기능명]"
-labels: ["🛠 개선"]
+title: '🛠개선: [개선할 기능명]'
+labels: ['🛠 개선']
 assignees: []
 
 body:
   - type: dropdown
     id: improvement-type
     attributes:
-      label: "🎯 개선 유형"
-      description: "어떤 종류의 개선인가요?"
+      label: '🎯 개선 유형'
+      description: '어떤 종류의 개선인가요?'
       options:
-        - "🚀 성능 개선"
-        - "🎨 UI/UX 개선" 
-        - "♿ 접근성 개선"
-        - "📱 모바일 경험 개선"
-        - "🔧 개발자 경험 개선"
-        - "🔒 보안 개선"
-        - "📊 분석/모니터링 개선"
-        - "🌐 다국어 지원"
-        - "기타"
+        - '🚀 성능 개선'
+        - '🎨 UI/UX 개선'
+        - '♿ 접근성 개선'
+        - '📱 모바일 경험 개선'
+        - '🔧 개발자 경험 개선'
+        - '🔒 보안 개선'
+        - '📊 분석/모니터링 개선'
+        - '🌐 다국어 지원'
+        - '기타'
     validations:
       required: true
 
   - type: textarea
     id: current-behavior
     attributes:
-      label: "📋 현재 상태"
-      description: "현재 어떻게 동작하고 있나요?"
-      placeholder: "현재 파일 업로드 시 진행률 표시가 없어서 사용자가 업로드 상태를 알 수 없음"
+      label: '📋 현재 상태'
+      description: '현재 어떻게 동작하고 있나요?'
+      placeholder: '현재 파일 업로드 시 진행률 표시가 없어서 사용자가 업로드 상태를 알 수 없음'
     validations:
       required: true
 
   - type: textarea
     id: proposed-improvement
     attributes:
-      label: "✨ 제안하는 개선사항"
-      description: "어떻게 개선하고 싶으신가요?"
-      placeholder: "파일 업로드 중 진행률 바를 표시하고, 업로드 완료/실패 알림을 추가"
+      label: '✨ 제안하는 개선사항'
+      description: '어떻게 개선하고 싶으신가요?'
+      placeholder: '파일 업로드 중 진행률 바를 표시하고, 업로드 완료/실패 알림을 추가'
     validations:
       required: true
 
   - type: dropdown
     id: implementation-complexity
     attributes:
-      label: "🔧 구현 복잡도 (예상)"
-      description: "이 개선사항의 구현 난이도를 어떻게 생각하시나요?"
+      label: '🔧 구현 복잡도 (예상)'
+      description: '이 개선사항의 구현 난이도를 어떻게 생각하시나요?'
       options:
-        - "🟢 쉬움 - 1-2일 작업"
-        - "🟡 보통 - 3-5일 작업"  
-        - "🟠 복잡 - 1-2주 작업"
-        - "🔴 매우복잡 - 2주 이상"
-        - "❓ 잘 모르겠음"
+        - '🟢 쉬움 - 1-2일 작업'
+        - '🟡 보통 - 3-5일 작업'
+        - '🟠 복잡 - 1-2주 작업'
+        - '🔴 매우복잡 - 2주 이상'
+        - '❓ 잘 모르겠음'
 
   - type: textarea
     id: references
     attributes:
-      label: "📎 참고자료"
-      description: "참고할 만한 링크, 스크린샷, 사례가 있다면 공유해주세요"
-      placeholder: "비슷한 기능을 가진 다른 서비스의 예시나 디자인 가이드"
+      label: '📎 참고자료'
+      description: '참고할 만한 링크, 스크린샷, 사례가 있다면 공유해주세요'
+      placeholder: '비슷한 기능을 가진 다른 서비스의 예시나 디자인 가이드'

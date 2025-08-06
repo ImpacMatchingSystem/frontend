@@ -1,10 +1,10 @@
-"use client"
+'use client'
 
-import type React from "react"
+import { useRouter } from 'next/navigation'
+import type React from 'react'
+import { useEffect } from 'react'
 
-import { useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { useAuthStore } from "@/store/auth-store"
+import { useAuthStore } from '@/store/auth-store'
 
 interface AdminGuardProps {
   children: React.ReactNode
@@ -16,12 +16,12 @@ export function AdminGuard({ children }: AdminGuardProps) {
   const router = useRouter()
 
   useEffect(() => {
-    if (!user || user.role !== "admin") {
-      router.push("/admin/login")
+    if (!user || user.role !== 'admin') {
+      router.push('/admin/login')
     }
   }, [user, router])
 
-  if (!user || user.role !== "admin") {
+  if (!user || user.role !== 'admin') {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">

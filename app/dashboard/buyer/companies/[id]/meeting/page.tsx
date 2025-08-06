@@ -1,16 +1,26 @@
-"use client"
+'use client'
 
-import { useState, useEffect } from "react"
-import { useParams, useRouter } from "next/navigation"
-import { Calendar, Clock, ArrowLeft, Send } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Textarea } from "@/components/ui/textarea"
-import { Badge } from "@/components/ui/badge"
-import { useToast } from "@/hooks/use-toast"
-import { useAuthStore } from "@/store/auth-store"
-import { mockApi } from "@/lib/supabase/mock-api"
-import type { Company } from "@/lib/supabase/mock-data"
+import { useParams, useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
+
+import { useAuthStore } from '@/store/auth-store'
+import { Calendar, Clock, ArrowLeft, Send } from 'lucide-react'
+
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import { Textarea } from '@/components/ui/textarea'
+
+import { useToast } from '@/hooks/use-toast'
+
+import { mockApi } from '@/lib/supabase/mock-api'
+import type { Company } from '@/lib/supabase/mock-data'
 
 export default function MeetingRequestPage() {
   const params = useParams()
@@ -19,16 +29,16 @@ export default function MeetingRequestPage() {
   const { user } = useAuthStore()
 
   const [company, setCompany] = useState<Company | null>(null)
-  const [selectedDate, setSelectedDate] = useState<string>("")
-  const [selectedTime, setSelectedTime] = useState<string>("")
-  const [message, setMessage] = useState("")
+  const [selectedDate, setSelectedDate] = useState<string>('')
+  const [selectedTime, setSelectedTime] = useState<string>('')
+  const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
 
   // 바이어만 접근 가능
   useEffect(() => {
-    if (!user || user.role !== "buyer") {
-      router.push("/login")
+    if (!user || user.role !== 'buyer') {
+      router.push('/login')
       return
     }
   }, [user, router])
@@ -40,20 +50,20 @@ export default function MeetingRequestPage() {
         const companyData = await mockApi.companies.getById(params.id as string)
         if (!companyData) {
           toast({
-            title: "오류",
-            description: "기업 정보를 찾을 수 없습니다.",
-            variant: "destructive",
+            title: '오류',
+            description: '기업 정보를 찾을 수 없습니다.',
+            variant: 'destructive',
           })
-          router.push("/dashboard/buyer/companies")
+          router.push('/dashboard/buyer/companies')
           return
         }
         setCompany(companyData)
       } catch (error) {
-        console.error("Failed to load company:", error)
+        console.error('Failed to load company:', error)
         toast({
-          title: "오류",
-          description: "기업 정보를 불러오는데 실패했습니다.",
-          variant: "destructive",
+          title: '오류',
+          description: '기업 정보를 불러오는데 실패했습니다.',
+          variant: 'destructive',
         })
       } finally {
         setLoading(false)
@@ -73,7 +83,7 @@ export default function MeetingRequestPage() {
     for (let i = 0; i < 14; i++) {
       const date = new Date(today)
       date.setDate(today.getDate() + i)
-      dates.push(date.toISOString().split("T")[0])
+      dates.push(date.toISOString().split('T')[0])
     }
 
     return dates
@@ -87,7 +97,7 @@ export default function MeetingRequestPage() {
 
     for (let hour = startHour; hour < endHour; hour++) {
       for (let minute = 0; minute < 60; minute += duration) {
-        const time = `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`
+        const time = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`
         slots.push(time)
       }
     }
@@ -107,18 +117,18 @@ export default function MeetingRequestPage() {
   const handleSubmit = async () => {
     if (!selectedDate || !selectedTime) {
       toast({
-        title: "입력 오류",
-        description: "날짜와 시간을 선택해주세요.",
-        variant: "destructive",
+        title: '입력 오류',
+        description: '날짜와 시간을 선택해주세요.',
+        variant: 'destructive',
       })
       return
     }
 
     if (!user) {
       toast({
-        title: "인증 오류",
-        description: "로그인이 필요합니다.",
-        variant: "destructive",
+        title: '인증 오류',
+        description: '로그인이 필요합니다.',
+        variant: 'destructive',
       })
       return
     }
@@ -134,24 +144,24 @@ export default function MeetingRequestPage() {
         buyer_id: user.id,
         meeting_time: meetingTime.toISOString(),
         end_time: endTime.toISOString(),
-        status: "pending",
+        status: 'pending',
         buyer_message: message || null,
         company_response: null,
         rejection_reason: null,
       })
 
       toast({
-        title: "미팅 요청 완료",
-        description: "미팅 요청이 성공적으로 전송되었습니다.",
+        title: '미팅 요청 완료',
+        description: '미팅 요청이 성공적으로 전송되었습니다.',
       })
 
-      router.push("/dashboard/buyer")
+      router.push('/dashboard/buyer')
     } catch (error) {
-      console.error("Failed to create meeting:", error)
+      console.error('Failed to create meeting:', error)
       toast({
-        title: "오류",
-        description: "미팅 요청 중 오류가 발생했습니다.",
-        variant: "destructive",
+        title: '오류',
+        description: '미팅 요청 중 오류가 발생했습니다.',
+        variant: 'destructive',
       })
     } finally {
       setSubmitting(false)
@@ -187,19 +197,28 @@ export default function MeetingRequestPage() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* 헤더 */}
         <div className="mb-8">
-          <Button variant="ghost" onClick={() => router.back()} className="mb-4">
+          <Button
+            variant="ghost"
+            onClick={() => router.back()}
+            className="mb-4"
+          >
             <ArrowLeft className="mr-2 h-4 w-4" />
             뒤로 가기
           </Button>
 
           <div className="flex items-center space-x-4">
             <img
-              src={company.logo_url || "/placeholder.svg?height=64&width=64&text=Logo"}
+              src={
+                company.logo_url ||
+                '/placeholder.svg?height=64&width=64&text=Logo'
+              }
               alt={company.name}
               className="w-16 h-16 rounded-lg object-cover"
             />
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">{company.name}</h1>
+              <h1 className="text-3xl font-bold text-gray-900">
+                {company.name}
+              </h1>
               <p className="text-gray-600 mt-1">
                 {company.industry} • {company.location}
               </p>
@@ -217,7 +236,9 @@ export default function MeetingRequestPage() {
               <CardContent className="space-y-4">
                 <div>
                   <h4 className="font-medium text-gray-900">회사 소개</h4>
-                  <p className="text-sm text-gray-600 mt-1">{company.description}</p>
+                  <p className="text-sm text-gray-600 mt-1">
+                    {company.description}
+                  </p>
                 </div>
 
                 {company.website_url && (
@@ -252,14 +273,16 @@ export default function MeetingRequestPage() {
                   <Calendar className="mr-2 h-5 w-5" />
                   미팅 예약
                 </CardTitle>
-                <CardDescription>원하는 날짜와 시간을 선택하여 미팅을 요청하세요.</CardDescription>
+                <CardDescription>
+                  원하는 날짜와 시간을 선택하여 미팅을 요청하세요.
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 {/* 날짜 선택 */}
                 <div>
                   <h4 className="font-medium text-gray-900 mb-3">날짜 선택</h4>
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-                    {dates.map((date) => {
+                    {dates.map(date => {
                       const dateObj = new Date(date)
                       const hasAvailableSlots =
                         company.available_times &&
@@ -269,20 +292,30 @@ export default function MeetingRequestPage() {
                       return (
                         <Button
                           key={date}
-                          variant={selectedDate === date ? "default" : "outline"}
+                          variant={
+                            selectedDate === date ? 'default' : 'outline'
+                          }
                           className={`p-3 h-auto flex flex-col ${
-                            !hasAvailableSlots ? "opacity-50 cursor-not-allowed" : ""
+                            !hasAvailableSlots
+                              ? 'opacity-50 cursor-not-allowed'
+                              : ''
                           }`}
                           onClick={() => {
                             if (hasAvailableSlots) {
                               setSelectedDate(date)
-                              setSelectedTime("") // 날짜 변경 시 시간 초기화
+                              setSelectedTime('') // 날짜 변경 시 시간 초기화
                             }
                           }}
                           disabled={!hasAvailableSlots}
                         >
-                          <span className="text-xs">{dateObj.toLocaleDateString("ko-KR", { weekday: "short" })}</span>
-                          <span className="text-sm font-medium">{dateObj.getDate()}</span>
+                          <span className="text-xs">
+                            {dateObj.toLocaleDateString('ko-KR', {
+                              weekday: 'short',
+                            })}
+                          </span>
+                          <span className="text-sm font-medium">
+                            {dateObj.getDate()}
+                          </span>
                         </Button>
                       )
                     })}
@@ -297,15 +330,17 @@ export default function MeetingRequestPage() {
                       시간 선택
                     </h4>
                     <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
-                      {timeSlots.map((time) => {
+                      {timeSlots.map(time => {
                         const isAvailable = isTimeAvailable(selectedDate, time)
 
                         return (
                           <Button
                             key={time}
-                            variant={selectedTime === time ? "default" : "outline"}
+                            variant={
+                              selectedTime === time ? 'default' : 'outline'
+                            }
                             size="sm"
-                            className={`${!isAvailable ? "opacity-50 cursor-not-allowed" : ""}`}
+                            className={`${!isAvailable ? 'opacity-50 cursor-not-allowed' : ''}`}
                             onClick={() => {
                               if (isAvailable) {
                                 setSelectedTime(time)
@@ -339,11 +374,13 @@ export default function MeetingRequestPage() {
 
                 {/* 메시지 */}
                 <div>
-                  <h4 className="font-medium text-gray-900 mb-3">미팅 요청사항 (선택사항)</h4>
+                  <h4 className="font-medium text-gray-900 mb-3">
+                    미팅 요청사항 (선택사항)
+                  </h4>
                   <Textarea
                     placeholder="미팅에서 논의하고 싶은 내용이나 특별한 요청사항을 입력해주세요."
                     value={message}
-                    onChange={(e) => setMessage(e.target.value)}
+                    onChange={e => setMessage(e.target.value)}
                     rows={4}
                   />
                 </div>
@@ -351,16 +388,18 @@ export default function MeetingRequestPage() {
                 {/* 선택된 정보 요약 */}
                 {selectedDate && selectedTime && (
                   <div className="bg-blue-50 p-4 rounded-lg">
-                    <h4 className="font-medium text-gray-900 mb-2">선택된 미팅 정보</h4>
+                    <h4 className="font-medium text-gray-900 mb-2">
+                      선택된 미팅 정보
+                    </h4>
                     <div className="space-y-1 text-sm text-gray-600">
                       <p>• 기업: {company.name}</p>
                       <p>
-                        • 날짜:{" "}
-                        {new Date(selectedDate).toLocaleDateString("ko-KR", {
-                          year: "numeric",
-                          month: "long",
-                          day: "numeric",
-                          weekday: "long",
+                        • 날짜:{' '}
+                        {new Date(selectedDate).toLocaleDateString('ko-KR', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                          weekday: 'long',
                         })}
                       </p>
                       <p>• 시간: {selectedTime} (30분)</p>
@@ -376,7 +415,7 @@ export default function MeetingRequestPage() {
                   size="lg"
                 >
                   <Send className="mr-2 h-4 w-4" />
-                  {submitting ? "요청 중..." : "미팅 요청하기"}
+                  {submitting ? '요청 중...' : '미팅 요청하기'}
                 </Button>
               </CardContent>
             </Card>

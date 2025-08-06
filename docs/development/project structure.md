@@ -19,7 +19,9 @@ impacmatching/
 ## 🏗️ 계층별 상세 구조
 
 ### 1. Application Layer (`src/app/`)
+
 **역할**: 페이지 라우팅 및 레이아웃 관리
+
 ```
 src/app/
 ├── (auth)/                   # 인증 관련 페이지 그룹
@@ -49,7 +51,9 @@ src/app/
 ```
 
 ### 2. Service Layer (`src/api/`)
+
 **역할**: API 라우트 및 서버 사이드 로직
+
 ```
 src/api/
 ├── auth/                      # 인증 관련 API
@@ -80,7 +84,9 @@ src/api/
 ```
 
 ### 3. UI Layer (`src/components/`)
+
 **역할**: 재사용 가능한 UI 컴포넌트
+
 ```
 src/components/
 ├── ui/                        # shadcn/ui 기본 컴포넌트
@@ -128,7 +134,9 @@ src/components/
 ```
 
 ### 4. React Layer (`src/hooks/` & `src/store/`)
+
 **역할**: React 상태 관리 및 커스텀 훅
+
 ```
 src/hooks/                     # Custom React Hooks
 ├── use-auth.ts               # 인증 관련 훅 (개발 필요)
@@ -146,7 +154,9 @@ src/store/                     # 상태 관리 (개발 필요)
 ```
 
 ### 5. Non-react Layer (`src/lib/`)
+
 **역할**: 유틸리티 함수 및 외부 서비스 연동
+
 ```
 src/lib/
 ├── supabase/                  # Supabase 관련
@@ -174,7 +184,9 @@ src/lib/
 ```
 
 ### 6. Type Definitions (`src/types/`)
+
 **역할**: TypeScript 타입 정의
+
 ```
 src/types/
 ├── auth.ts                    # 인증 관련 타입
@@ -189,6 +201,7 @@ src/types/
 ## 🔧 외부 설정 폴더
 
 ### Supabase 설정
+
 ```
 supabase/
 ├── config.toml               # Supabase 설정
@@ -205,6 +218,7 @@ supabase/
 ```
 
 ### 정적 파일 및 문서
+
 ```
 public/                       # 정적 파일
 ├── images/
@@ -223,17 +237,17 @@ docs/                         # 프로젝트 문서
 
 ## 📋 폴더별 역할 요약
 
-| 폴더 | 계층 | 역할 |
-|------|------|------|
-| `src/app/` | Application Layer | 페이지 라우팅, 레이아웃 |
-| `src/api/` | Service Layer | API 엔드포인트, 서버 로직 |
-| `src/components/` | UI Layer | React 컴포넌트, UI 요소 |
-| `src/hooks/` | React Layer | 커스텀 훅, React 상태 |
-| `src/lib/` | Non-react Layer | 유틸리티, 외부 서비스 연동 |
-| `src/types/` | Type Layer | TypeScript 타입 정의 |
-| `supabase/` | Backend | 데이터베이스, 함수 설정 |
-| `public/` | Static | 정적 파일, 이미지 |
-| `docs/` | Documentation | 프로젝트 문서 |
+| 폴더              | 계층              | 역할                       |
+| ----------------- | ----------------- | -------------------------- |
+| `src/app/`        | Application Layer | 페이지 라우팅, 레이아웃    |
+| `src/api/`        | Service Layer     | API 엔드포인트, 서버 로직  |
+| `src/components/` | UI Layer          | React 컴포넌트, UI 요소    |
+| `src/hooks/`      | React Layer       | 커스텀 훅, React 상태      |
+| `src/lib/`        | Non-react Layer   | 유틸리티, 외부 서비스 연동 |
+| `src/types/`      | Type Layer        | TypeScript 타입 정의       |
+| `supabase/`       | Backend           | 데이터베이스, 함수 설정    |
+| `public/`         | Static            | 정적 파일, 이미지          |
+| `docs/`           | Documentation     | 프로젝트 문서              |
 
 ## 🎯 설계 원칙
 

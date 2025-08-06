@@ -1,0 +1,94 @@
+name: 🔍 Code Quality Check
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main, develop]
+
+jobs:
+  lint-and-format:
+    name: 🧹 ESLint & Prettier Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📦 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📥 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: 📦 Install dependencies
+        run: npm ci
+
+      - name: 🔍 Run ESLint
+        run: npm run lint
+
+      - name: 🎨 Check Prettier formatting
+        run: npm run format:check
+
+      - name: 📝 TypeScript type check
+        run: npm run type-check
+
+  commit-message-check:
+    name: 📝 Commit Message Check
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: 📦 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🔍 Check commit messages
+        run: |
+          # PR의 모든 커밋 메시지 확인
+          commits=$(git log --format="%s" ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }})
+
+          echo "🔍 커밋 메시지 검사 중..."
+          echo "$commits"
+
+          # 올바른 형식인지 검사
+          valid_pattern="^(🎁새기능|🛠개선|🐛오류|🎨리팩토링|📝문서|🚀배포):"
+
+          while IFS= read -r commit; do
+            if [[ ! $commit =~ $valid_pattern ]]; then
+              echo "❌ 잘못된 커밋 메시지 형식: $commit"
+              echo ""
+              echo "올바른 형식:"
+              echo "🎁새기능: 새로운 기능 추가"
+              echo "🛠개선: 기존 기능 개선" 
+              echo "🐛오류: 버그 수정"
+              echo "🎨리팩토링: 코드 리팩토링"
+              echo "📝문서: 문서 작업"
+              echo "🚀배포: 배포 관련"
+              exit 1
+            fi
+          done <<< "$commits"
+
+          echo "✅ 모든 커밋 메시지가 올바른 형식입니다!"
+
+  dependency-check:
+    name: 🔒 Security & Dependency Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📦 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📥 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: 🔒 Run security audit
+        run: npm audit --audit-level=moderate
+        continue-on-error: true
+
+      - name: 📋 Check for outdated packages
+        run: npm outdated || true

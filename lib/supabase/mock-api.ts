@@ -9,20 +9,20 @@ import {
   type Buyer,
   type Meeting,
   type Event,
-} from "./mock-data"
+} from './mock-data'
 
 // LocalStorage 키
 const STORAGE_KEYS = {
-  COMPANIES: "impac_companies",
-  ADMINS: "impac_admins",
-  BUYERS: "impac_buyers",
-  MEETINGS: "impac_meetings",
-  EVENTS: "impac_events",
+  COMPANIES: 'impac_companies',
+  ADMINS: 'impac_admins',
+  BUYERS: 'impac_buyers',
+  MEETINGS: 'impac_meetings',
+  EVENTS: 'impac_events',
 }
 
 // 초기 데이터 로드
 function initializeData() {
-  if (typeof window === "undefined") return
+  if (typeof window === 'undefined') return
 
   // 강제로 초기 데이터 재설정 (개발 중에만)
   localStorage.setItem(STORAGE_KEYS.COMPANIES, JSON.stringify(mockCompanies))
@@ -34,19 +34,19 @@ function initializeData() {
 
 // 데이터 가져오기
 function getData<T>(key: string): T[] {
-  if (typeof window === "undefined") return []
+  if (typeof window === 'undefined') return []
   const data = localStorage.getItem(key)
   return data ? JSON.parse(data) : []
 }
 
 // 데이터 저장하기
 function setData<T>(key: string, data: T[]) {
-  if (typeof window === "undefined") return
+  if (typeof window === 'undefined') return
   localStorage.setItem(key, JSON.stringify(data))
 }
 
 // 지연 시뮬레이션
-const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
 export const mockApi = {
   // 초기화
@@ -62,19 +62,22 @@ export const mockApi = {
     getActive: async (): Promise<Event | null> => {
       await delay(200)
       const events = getData<Event>(STORAGE_KEYS.EVENTS)
-      return events.find((e) => e.is_active) || null
+      return events.find(e => e.is_active) || null
     },
 
     getById: async (id: string): Promise<Event | null> => {
       await delay(200)
       const events = getData<Event>(STORAGE_KEYS.EVENTS)
-      return events.find((e) => e.id === id) || null
+      return events.find(e => e.id === id) || null
     },
 
-    update: async (id: string, updates: Partial<Event>): Promise<Event | null> => {
+    update: async (
+      id: string,
+      updates: Partial<Event>
+    ): Promise<Event | null> => {
       await delay(300)
       const events = getData<Event>(STORAGE_KEYS.EVENTS)
-      const index = events.findIndex((e) => e.id === id)
+      const index = events.findIndex(e => e.id === id)
       if (index === -1) return null
 
       events[index] = { ...events[index], ...updates }
@@ -82,7 +85,7 @@ export const mockApi = {
       return events[index]
     },
 
-    create: async (event: Omit<Event, "id" | "created_at">): Promise<Event> => {
+    create: async (event: Omit<Event, 'id' | 'created_at'>): Promise<Event> => {
       await delay(300)
       const events = getData<Event>(STORAGE_KEYS.EVENTS)
       const newEvent: Event = {
@@ -100,7 +103,7 @@ export const mockApi = {
   companies: {
     getAll: async (): Promise<Company[]> => {
       await delay(300)
-      return getData<Company>(STORAGE_KEYS.COMPANIES).filter((c) => c.is_active)
+      return getData<Company>(STORAGE_KEYS.COMPANIES).filter(c => c.is_active)
     },
 
     getAllIncludeInactive: async (): Promise<Company[]> => {
@@ -111,23 +114,27 @@ export const mockApi = {
     getById: async (id: string): Promise<Company | null> => {
       await delay(200)
       const companies = getData<Company>(STORAGE_KEYS.COMPANIES)
-      return companies.find((c) => c.id === id && c.is_active) || null
+      return companies.find(c => c.id === id && c.is_active) || null
     },
 
     getByEmail: async (email: string): Promise<Company | null> => {
       await delay(200)
       const companies = getData<Company>(STORAGE_KEYS.COMPANIES)
-      console.log("Companies in storage:", companies)
-      console.log("Looking for email:", email)
-      const company = companies.find((c) => c.email === email && c.is_active) || null
-      console.log("Found company:", company)
+      console.log('Companies in storage:', companies)
+      console.log('Looking for email:', email)
+      const company =
+        companies.find(c => c.email === email && c.is_active) || null
+      console.log('Found company:', company)
       return company
     },
 
-    update: async (id: string, updates: Partial<Company>): Promise<Company | null> => {
+    update: async (
+      id: string,
+      updates: Partial<Company>
+    ): Promise<Company | null> => {
       await delay(300)
       const companies = getData<Company>(STORAGE_KEYS.COMPANIES)
-      const index = companies.findIndex((c) => c.id === id)
+      const index = companies.findIndex(c => c.id === id)
       if (index === -1) return null
 
       companies[index] = { ...companies[index], ...updates }
@@ -135,7 +142,9 @@ export const mockApi = {
       return companies[index]
     },
 
-    create: async (company: Omit<Company, "id" | "created_at">): Promise<Company> => {
+    create: async (
+      company: Omit<Company, 'id' | 'created_at'>
+    ): Promise<Company> => {
       await delay(300)
       const companies = getData<Company>(STORAGE_KEYS.COMPANIES)
       const newCompany: Company = {
@@ -154,10 +163,10 @@ export const mockApi = {
     getByEmail: async (email: string): Promise<Admin | null> => {
       await delay(200)
       const admins = getData<Admin>(STORAGE_KEYS.ADMINS)
-      console.log("Admins in storage:", admins)
-      console.log("Looking for admin email:", email)
-      const admin = admins.find((a) => a.email === email) || null
-      console.log("Found admin:", admin)
+      console.log('Admins in storage:', admins)
+      console.log('Looking for admin email:', email)
+      const admin = admins.find(a => a.email === email) || null
+      console.log('Found admin:', admin)
       return admin
     },
   },
@@ -172,20 +181,20 @@ export const mockApi = {
     getByEmail: async (email: string): Promise<Buyer | null> => {
       await delay(200)
       const buyers = getData<Buyer>(STORAGE_KEYS.BUYERS)
-      console.log("Searching for buyer with email:", email)
-      console.log("Available buyers:", buyers)
-      const buyer = buyers.find((b) => b.email === email) || null
-      console.log("Found buyer:", buyer)
+      console.log('Searching for buyer with email:', email)
+      console.log('Available buyers:', buyers)
+      const buyer = buyers.find(b => b.email === email) || null
+      console.log('Found buyer:', buyer)
       return buyer
     },
 
     getById: async (id: string): Promise<Buyer | null> => {
       await delay(200)
       const buyers = getData<Buyer>(STORAGE_KEYS.BUYERS)
-      return buyers.find((b) => b.id === id) || null
+      return buyers.find(b => b.id === id) || null
     },
 
-    create: async (buyer: Omit<Buyer, "id" | "created_at">): Promise<Buyer> => {
+    create: async (buyer: Omit<Buyer, 'id' | 'created_at'>): Promise<Buyer> => {
       await delay(300)
       const buyers = getData<Buyer>(STORAGE_KEYS.BUYERS)
       const newBuyer: Buyer = {
@@ -198,10 +207,13 @@ export const mockApi = {
       return newBuyer
     },
 
-    update: async (id: string, updates: Partial<Buyer>): Promise<Buyer | null> => {
+    update: async (
+      id: string,
+      updates: Partial<Buyer>
+    ): Promise<Buyer | null> => {
       await delay(300)
       const buyers = getData<Buyer>(STORAGE_KEYS.BUYERS)
-      const index = buyers.findIndex((b) => b.id === id)
+      const index = buyers.findIndex(b => b.id === id)
       if (index === -1) return null
 
       buyers[index] = { ...buyers[index], ...updates }
@@ -212,7 +224,7 @@ export const mockApi = {
     delete: async (id: string): Promise<boolean> => {
       await delay(300)
       const buyers = getData<Buyer>(STORAGE_KEYS.BUYERS)
-      const filteredBuyers = buyers.filter((b) => b.id !== id)
+      const filteredBuyers = buyers.filter(b => b.id !== id)
       setData(STORAGE_KEYS.BUYERS, filteredBuyers)
       return true
     },
@@ -228,16 +240,18 @@ export const mockApi = {
     getByCompanyId: async (companyId: string): Promise<Meeting[]> => {
       await delay(300)
       const meetings = getData<Meeting>(STORAGE_KEYS.MEETINGS)
-      return meetings.filter((m) => m.company_id === companyId)
+      return meetings.filter(m => m.company_id === companyId)
     },
 
     getByBuyerId: async (buyerId: string): Promise<Meeting[]> => {
       await delay(300)
       const meetings = getData<Meeting>(STORAGE_KEYS.MEETINGS)
-      return meetings.filter((m) => m.buyer_id === buyerId)
+      return meetings.filter(m => m.buyer_id === buyerId)
     },
 
-    create: async (meeting: Omit<Meeting, "id" | "created_at">): Promise<Meeting> => {
+    create: async (
+      meeting: Omit<Meeting, 'id' | 'created_at'>
+    ): Promise<Meeting> => {
       await delay(300)
       const meetings = getData<Meeting>(STORAGE_KEYS.MEETINGS)
       const newMeeting: Meeting = {
@@ -250,10 +264,13 @@ export const mockApi = {
       return newMeeting
     },
 
-    update: async (id: string, updates: Partial<Meeting>): Promise<Meeting | null> => {
+    update: async (
+      id: string,
+      updates: Partial<Meeting>
+    ): Promise<Meeting | null> => {
       await delay(300)
       const meetings = getData<Meeting>(STORAGE_KEYS.MEETINGS)
-      const index = meetings.findIndex((m) => m.id === id)
+      const index = meetings.findIndex(m => m.id === id)
       if (index === -1) return null
 
       meetings[index] = { ...meetings[index], ...updates }

@@ -1,39 +1,73 @@
-"use client"
+'use client'
 
-import React, { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Switch } from "@/components/ui/switch"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import type { Company } from "@/lib/supabase/mock-api"
+import React, { useState } from 'react'
+
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Switch } from '@/components/ui/switch'
+import { Textarea } from '@/components/ui/textarea'
+
+import type { Company } from '@/lib/supabase/mock-api'
 
 const INDUSTRIES = [
-  "IT/소프트웨어", "제조업", "금융", "의료/헬스케어", "교육", 
-  "유통/소매", "건설/부동산", "운송/물류", "미디어/광고", "기타"
+  'IT/소프트웨어',
+  '제조업',
+  '금융',
+  '의료/헬스케어',
+  '교육',
+  '유통/소매',
+  '건설/부동산',
+  '운송/물류',
+  '미디어/광고',
+  '기타',
 ]
 
 const LOCATIONS = [
-  "서울", "부산", "대구", "인천", "광주", "대전", "울산", 
-  "세종", "경기", "강원", "충북", "충남", "전북", "전남", 
-  "경북", "경남", "제주", "해외"
+  '서울',
+  '부산',
+  '대구',
+  '인천',
+  '광주',
+  '대전',
+  '울산',
+  '세종',
+  '경기',
+  '강원',
+  '충북',
+  '충남',
+  '전북',
+  '전남',
+  '경북',
+  '경남',
+  '제주',
+  '해외',
 ]
 
 interface CompanyCreateFormProps {
-  onSave: (data: Omit<Company, "id" | "created_at">) => Promise<void>
+  onSave: (data: Omit<Company, 'id' | 'created_at'>) => Promise<void>
   onCancel: () => void
 }
 
-export function CompanyCreateForm({ onSave, onCancel }: CompanyCreateFormProps) {
+export function CompanyCreateForm({
+  onSave,
+  onCancel,
+}: CompanyCreateFormProps) {
   const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    password: "",
-    description: "",
-    website_url: "",
-    industry: "",
-    location: "",
+    name: '',
+    email: '',
+    password: '',
+    description: '',
+    website_url: '',
+    industry: '',
+    location: '',
     is_active: true,
   })
 
@@ -70,7 +104,9 @@ export function CompanyCreateForm({ onSave, onCancel }: CompanyCreateFormProps) 
           <Input
             id="name"
             value={formData.name}
-            onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
+            onChange={e =>
+              setFormData(prev => ({ ...prev, name: e.target.value }))
+            }
             required
           />
         </div>
@@ -81,7 +117,9 @@ export function CompanyCreateForm({ onSave, onCancel }: CompanyCreateFormProps) 
             id="email"
             type="email"
             value={formData.email}
-            onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
+            onChange={e =>
+              setFormData(prev => ({ ...prev, email: e.target.value }))
+            }
             required
           />
         </div>
@@ -93,7 +131,9 @@ export function CompanyCreateForm({ onSave, onCancel }: CompanyCreateFormProps) 
           id="password"
           type="password"
           value={formData.password}
-          onChange={(e) => setFormData((prev) => ({ ...prev, password: e.target.value }))}
+          onChange={e =>
+            setFormData(prev => ({ ...prev, password: e.target.value }))
+          }
           required
           placeholder="기업에서 사용할 임시 비밀번호를 입력하세요"
         />
@@ -104,7 +144,9 @@ export function CompanyCreateForm({ onSave, onCancel }: CompanyCreateFormProps) 
         <Textarea
           id="description"
           value={formData.description}
-          onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
+          onChange={e =>
+            setFormData(prev => ({ ...prev, description: e.target.value }))
+          }
           rows={3}
           placeholder="기업에 대한 간단한 소개를 입력하세요"
         />
@@ -115,13 +157,15 @@ export function CompanyCreateForm({ onSave, onCancel }: CompanyCreateFormProps) 
           <Label htmlFor="industry">업종</Label>
           <Select
             value={formData.industry}
-            onValueChange={(value) => setFormData((prev) => ({ ...prev, industry: value }))}
+            onValueChange={value =>
+              setFormData(prev => ({ ...prev, industry: value }))
+            }
           >
             <SelectTrigger>
               <SelectValue placeholder="업종 선택" />
             </SelectTrigger>
             <SelectContent>
-              {INDUSTRIES.map((industry) => (
+              {INDUSTRIES.map(industry => (
                 <SelectItem key={industry} value={industry}>
                   {industry}
                 </SelectItem>
@@ -134,13 +178,15 @@ export function CompanyCreateForm({ onSave, onCancel }: CompanyCreateFormProps) 
           <Label htmlFor="location">지역</Label>
           <Select
             value={formData.location}
-            onValueChange={(value) => setFormData((prev) => ({ ...prev, location: value }))}
+            onValueChange={value =>
+              setFormData(prev => ({ ...prev, location: value }))
+            }
           >
             <SelectTrigger>
               <SelectValue placeholder="지역 선택" />
             </SelectTrigger>
             <SelectContent>
-              {LOCATIONS.map((location) => (
+              {LOCATIONS.map(location => (
                 <SelectItem key={location} value={location}>
                   {location}
                 </SelectItem>
@@ -156,7 +202,9 @@ export function CompanyCreateForm({ onSave, onCancel }: CompanyCreateFormProps) 
           id="website_url"
           type="url"
           value={formData.website_url}
-          onChange={(e) => setFormData((prev) => ({ ...prev, website_url: e.target.value }))}
+          onChange={e =>
+            setFormData(prev => ({ ...prev, website_url: e.target.value }))
+          }
           placeholder="https://example.com"
         />
       </div>
@@ -166,18 +214,25 @@ export function CompanyCreateForm({ onSave, onCancel }: CompanyCreateFormProps) 
           <Switch
             id="is_active"
             checked={formData.is_active}
-            onCheckedChange={(checked) => setFormData((prev) => ({ ...prev, is_active: checked }))}
+            onCheckedChange={checked =>
+              setFormData(prev => ({ ...prev, is_active: checked }))
+            }
           />
           <Label htmlFor="is_active">생성 후 즉시 활성화</Label>
         </div>
       </div>
 
       <div className="flex justify-end space-x-2 pt-4">
-        <Button type="button" variant="outline" onClick={onCancel} disabled={isSubmitting}>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onCancel}
+          disabled={isSubmitting}
+        >
           취소
         </Button>
         <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "생성 중..." : "기업 생성"}
+          {isSubmitting ? '생성 중...' : '기업 생성'}
         </Button>
       </div>
     </form>

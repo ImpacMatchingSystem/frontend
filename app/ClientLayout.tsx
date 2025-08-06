@@ -1,10 +1,11 @@
-"use client"
+'use client'
 
-import type React from "react"
+import type React from 'react'
+import { useEffect } from 'react'
 
-import { useEffect } from "react"
-import { Toaster } from "@/components/ui/toaster"
-import { mockApi } from "@/lib/supabase/mock-api"
+import { Toaster } from '@/components/ui/toaster'
+
+import { mockApi } from '@/lib/supabase/mock-api'
 
 interface ClientLayoutProps {
   children: React.ReactNode
