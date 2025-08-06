@@ -1,8 +1,6 @@
 name: Issue Automation
 on:
   issues:
-    types: [opened, labeled, assigned]
-  pull_request:
     types: [opened]
 
 jobs:
@@ -13,20 +11,22 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
-            const title = context.payload.issue.title.toLowerCase();
+            const title = context.payload.issue.title;
             const labels = [];
 
-            // 제목에 따른 자동 라벨링
-            if (title.includes('🎁새기능') || title.includes('feature')) {
-              labels.push('🎁 feature');
-            } else if (title.includes('🐛오류') || title.includes('bug')) {
-              labels.push('🐛 bug');
-            } else if (title.includes('🛠개선') || title.includes('enhancement')) {
-              labels.push('🛠 enhancement');
-            } else if (title.includes('📝문서') || title.includes('docs')) {
-              labels.push('📝 documentation');
-            } else if (title.includes('❓질문') || title.includes('question')) {
-              labels.push('❓ question');
+            // 제목에 따른 자동 라벨링 (6개 타입만)
+            if (title.includes('🎁새기능')) {
+              labels.push('🎁 새기능');
+            } else if (title.includes('🛠개선')) {
+              labels.push('🛠 개선');
+            } else if (title.includes('🐛오류')) {
+              labels.push('🐛 오류');
+            } else if (title.includes('🎨리팩토링')) {
+              labels.push('🎨 리팩토링');
+            } else if (title.includes('📝문서')) {
+              labels.push('📝 문서');
+            } else if (title.includes('🚀배포')) {
+              labels.push('🚀 배포');
             }
 
             if (labels.length > 0) {
@@ -37,41 +37,3 @@ jobs:
                 labels: labels
               });
             }
-
-  auto-assign:
-    runs-on: ubuntu-latest
-    if: contains(github.event.issue.labels.*.name, '🔴 critical')
-    steps:
-      - name: Auto assign critical issues
-        uses: actions/github-script@v6
-        with:
-          script: |
-            await github.rest.issues.addAssignees({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.payload.issue.number,
-              assignees: ['tech-lead-username'] // 기술 리드 계정명
-            });
-
-  notify-slack:
-    runs-on: ubuntu-latest
-    if: contains(github.event.issue.labels.*.name, '🔴 critical')
-    steps:
-      - name: Notify Slack for critical issues
-        uses: 8398a7/action-slack@v3
-        with:
-          status: custom
-          custom_payload: |
-            {
-              text: "🚨 긴급 이슈 발생!",
-              attachments: [{
-                color: "danger",
-                fields: [{
-                  title: "이슈",
-                  value: `<${{ github.event.issue.html_url }}|#${{ github.event.issue.number }}> ${{ github.event.issue.title }}`,
-                  short: false
-                }]
-              }]
-            }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
