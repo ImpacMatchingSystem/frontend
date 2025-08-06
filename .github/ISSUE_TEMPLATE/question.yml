@@ -1,0 +1,51 @@
+name: ❓ 질문/토론
+description: 질문이나 토론이 필요한 주제를 제시합니다
+title: "❓질문: [질문 주제]"
+labels: ["❓ question", "💭 discussion"]
+assignees: []
+
+body:
+  - type: dropdown
+    id: question-type
+    attributes:
+      label: "🤔 질문 유형"
+      options:
+        - "🔧 기술적 질문"
+        - "🎨 설계/아키텍처 논의"
+        - "📊 데이터/분석 관련"
+        - "🚀 배포/운영 관련"
+        - "📋 프로세스 개선"
+        - "🎯 기획/방향성 논의"
+        - "기타"
+    validations:
+      required: true
+
+  - type: textarea
+    id: question-content
+    attributes:
+      label: "❓ 질문 내용"
+      description: "궁금한 점이나 논의하고 싶은 주제를 자세히 설명해주세요"
+      placeholder: "Redis vs ElasticSearch를 캐싱 솔루션으로 사용할 때의 장단점은 무엇인가요?"
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: "🔍 배경 정보"
+      description: "질문과 관련된 배경 상황을 알려주세요"
+      placeholder: "현재 MySQL만 사용 중이고, 검색 성능 개선이 필요한 상황입니다."
+
+  - type: textarea
+    id: research-done
+    attributes:
+      label: "📚 조사한 내용"
+      description: "이미 조사해본 내용이 있다면 공유해주세요"
+      placeholder: "구글링으로 찾아본 몇 가지 옵션이 있지만, 우리 상황에 어떤 것이 적합한지 판단이 어렵습니다."
+
+  - type: textarea
+    id: expected-outcome
+    attributes:
+      label: "🎯 원하는 결과"
+      description: "이 토론을 통해 얻고 싶은 결과는 무엇인가요?"
+      placeholder: "팀 전체가 동의할 수 있는 기술 선택과 그 근거를 마련하고 싶습니다."

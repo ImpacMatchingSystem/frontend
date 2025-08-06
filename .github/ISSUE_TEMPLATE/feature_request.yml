@@ -1,0 +1,80 @@
+name: 🎁 새기능 요청
+description: 새로운 기능이나 개선사항을 제안합니다
+title: "🎁새기능: [기능명]"
+labels: ["🎁 새기능"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        새로운 기능 요청해주셔서 감사합니다! 🎉
+        가능한 한 자세히 작성해주시면 더 좋은 기능을 만들 수 있습니다.
+
+  - type: textarea
+    id: feature-description
+    attributes:
+      label: "✨ 기능 설명"
+      description: "어떤 기능을 원하시나요?"
+      placeholder: "예: 사용자가 프로필 사진을 업로드할 수 있는 기능"
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem-solution
+    attributes:
+      label: "🎯 해결하고 싶은 문제"
+      description: "이 기능이 어떤 문제를 해결하나요?"
+      placeholder: "현재 프로필 사진을 설정할 방법이 없어서 사용자 식별이 어려움"
+    validations:
+      required: true
+
+  - type: textarea
+    id: user-story
+    attributes:
+      label: "👤 사용자 스토리"
+      description: "사용자 관점에서 기능을 설명해주세요"
+      placeholder: "사용자로서, 나는 프로필 사진을 업로드하고 싶다, 왜냐하면 다른 사용자들이 나를 쉽게 인식할 수 있기 때문이다"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: "🚨 우선순위"
+      description: "이 기능의 우선순위는 어떻게 생각하시나요?"
+      options:
+        - "🟢 낮음 - 언젠가 있으면 좋을 기능"
+        - "🟡 보통 - 다음 몇 스프린트 내에 구현"
+        - "🟠 높음 - 다음 스프린트에 포함"
+        - "🔴 긴급 - 즉시 구현 필요"
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: "✅ 완료 조건"
+      description: "이 기능이 완료되었다고 판단할 수 있는 조건들"
+      placeholder: |
+        - [ ] 사용자가 이미지 파일을 선택할 수 있다
+        - [ ] 이미지가 적절한 크기로 크롭된다
+        - [ ] 업로드된 이미지가 프로필에 표시된다
+        - [ ] 기본 아바타로 되돌릴 수 있다
+
+  - type: textarea
+    id: mockup
+    attributes:
+      label: "🎨 UI/UX 아이디어"
+      description: "디자인 아이디어나 참고 이미지가 있다면 첨부해주세요"
+      placeholder: "Figma 링크, 스크린샷, 또는 텍스트로 설명"
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: "📋 체크리스트"
+      options:
+        - label: "기존 이슈를 검색했고, 중복되지 않습니다"
+          required: true
+        - label: "이 기능이 프로젝트 방향성과 일치합니다"
+          required: true

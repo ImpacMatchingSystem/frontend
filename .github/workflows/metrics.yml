@@ -1,0 +1,35 @@
+name: Issue Metrics
+on:
+  schedule:
+    - cron: "0 0 * * 1" # 매주 월요일
+  workflow_dispatch:
+
+jobs:
+  metrics:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Calculate metrics
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'all',
+              since: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+            });
+
+            const metrics = {
+              totalIssues: issues.length,
+              openIssues: issues.filter(i => i.state === 'open').length,
+              closedIssues: issues.filter(i => i.state === 'closed').length,
+              bugIssues: issues.filter(i => i.labels.some(l => l.name.includes('bug'))).length,
+              featureIssues: issues.filter(i => i.labels.some(l => l.name.includes('feature'))).length
+            };
+
+            console.log('📊 주간 이슈 메트릭:');
+            console.log(`- 전체 이슈: ${metrics.totalIssues}`);
+            console.log(`- 열린 이슈: ${metrics.openIssues}`);
+            console.log(`- 닫힌 이슈: ${metrics.closedIssues}`);
+            console.log(`- 버그: ${metrics.bugIssues}`);
+            console.log(`- 새기능: ${metrics.featureIssues}`);

@@ -1,0 +1,124 @@
+name: 🐛 버그 리포트
+description: 버그나 문제를 신고합니다
+title: "🐛오류: [간단한 버그 설명]"
+labels: ["🐛 오류"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        버그를 신고해주셔서 감사합니다! 🐛
+        빠른 해결을 위해 최대한 자세히 작성해주세요.
+
+  - type: textarea
+    id: bug-description
+    attributes:
+      label: "🔍 버그 설명"
+      description: "어떤 문제가 발생했나요?"
+      placeholder: "로그인 버튼을 클릭하면 페이지가 새로고침되지만 로그인되지 않습니다"
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction-steps
+    attributes:
+      label: "🔄 재현 단계"
+      description: "버그를 재현하는 방법을 단계별로 설명해주세요"
+      placeholder: |
+        1. 메인 페이지로 이동
+        2. 로그인 버튼 클릭
+        3. 이메일과 비밀번호 입력
+        4. "로그인" 버튼 클릭
+        5. 페이지가 새로고침됨
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: "✅ 예상 동작"
+      description: "어떻게 동작해야 한다고 생각하시나요?"
+      placeholder: "로그인 후 대시보드 페이지로 리디렉션되어야 합니다"
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual-behavior
+    attributes:
+      label: "❌ 실제 동작"
+      description: "실제로 어떻게 동작하나요?"
+      placeholder: "페이지가 새로고침되고 로그인 폼이 그대로 남아있습니다"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: "🚨 심각도"
+      description: "이 버그의 심각도는 어느 정도인가요?"
+      options:
+        - "🔴 치명적 - 서비스 사용 불가"
+        - "🟠 높음 - 주요 기능 동작 안 함"
+        - "🟡 보통 - 일부 기능에 문제"
+        - "🟢 낮음 - 사소한 UI 문제"
+    validations:
+      required: true
+
+  - type: input
+    id: device-info
+    attributes:
+      label: "📱 디바이스 정보"
+      description: "사용하신 디바이스를 알려주세요"
+      placeholder: "iPhone 12 Pro, Galaxy S21, MacBook Pro M1, etc."
+
+  - type: input
+    id: browser-info
+    attributes:
+      label: "🌐 브라우저 정보"
+      description: "사용하신 브라우저와 버전을 알려주세요"
+      placeholder: "Chrome 95.0, Safari 15.0, Firefox 94.0, etc."
+
+  - type: input
+    id: os-info
+    attributes:
+      label: "💻 운영체제 정보"
+      description: "사용하신 운영체제를 알려주세요"
+      placeholder: "macOS 12.0, Windows 11, iOS 15.1, Android 12, etc."
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: "📸 스크린샷/동영상"
+      description: "버그를 보여주는 스크린샷이나 동영상이 있다면 첨부해주세요"
+      placeholder: "파일을 드래그하거나 붙여넣기하세요"
+
+  - type: textarea
+    id: console-errors
+    attributes:
+      label: "🚫 콘솔 에러"
+      description: "브라우저 콘솔에 에러 메시지가 있다면 복사해서 붙여넣어주세요"
+      render: shell
+      placeholder: |
+        Uncaught TypeError: Cannot read property 'value' of null
+            at login.js:25:3
+            at HTMLButtonElement.<anonymous> (login.js:20:5)
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: "📝 추가 정보"
+      description: "다른 도움이 될 만한 정보가 있다면 알려주세요"
+      placeholder: "특정 조건에서만 발생, 다른 브라우저에서는 정상 동작 등"
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: "📋 체크리스트"
+      options:
+        - label: "기존 이슈를 검색했고, 중복되지 않습니다"
+          required: true
+        - label: "재현 단계를 직접 테스트해봤습니다"
+          required: true
+        - label: "최신 버전에서 발생하는 문제입니다"
+          required: true
