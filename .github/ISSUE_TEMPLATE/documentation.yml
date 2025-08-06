@@ -1,7 +1,7 @@
 name: 📝 문서 작업
 description: 문서 추가나 개선을 요청합니다
 title: "📝문서: [문서명]"
-labels: ["📝 documentation", "📋 triage-needed"]
+labels: ["📝 문서"]
 assignees: []
 
 body:
@@ -29,49 +29,3 @@ body:
       placeholder: "새로운 결제 API 사용 방법에 대한 개발자 가이드"
     validations:
       required: true
-
-  - type: textarea
-    id: target-audience
-    attributes:
-      label: "🎯 대상 독자"
-      description: "이 문서를 주로 누가 읽을 예정인가요?"
-      placeholder: "백엔드 개발자, 신입 개발자, API 연동을 담당하는 개발자"
-
-  - type: textarea
-    id: current-gap
-    attributes:
-      label: "❓ 현재 문제점"
-      description: "현재 문서에서 부족하거나 없는 부분이 무엇인가요?"
-      placeholder: "결제 API 연동 시 에러 처리 방법이 문서화되어 있지 않음"
-
-  - type: textarea
-    id: content-outline
-    attributes:
-      label: "📝 포함될 내용"
-      description: "문서에 포함되어야 할 주요 내용들을 나열해주세요"
-      placeholder: |
-        - API 엔드포인트 목록
-        - 요청/응답 예시
-        - 에러 코드 및 처리 방법
-        - SDK 사용 예제
-        - 테스트 방법
-
-  - type: dropdown
-    id: priority
-    attributes:
-      label: "🚨 우선순위"
-      options:
-        - "🔴 긴급 - 릴리즈 전 필수"
-        - "🟠 높음 - 다음 스프린트"
-        - "🟡 보통 - 몇 주 내"
-        - "🟢 낮음 - 언젠가"
-    validations:
-      required: true
-
-  - type: checkboxes
-    id: terms
-    attributes:
-      label: "📋 체크리스트"
-      options:
-        - label: "기존 문서를 확인했고, 중복되지 않습니다"
-          required: true

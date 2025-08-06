@@ -1,16 +1,10 @@
 name: 🛠 개선 제안
 description: 기존 기능의 개선을 제안합니다
 title: "🛠개선: [개선할 기능명]"
-labels: ["🛠 enhancement", "📋 triage-needed"]
+labels: ["🛠 개선"]
 assignees: []
 
 body:
-  - type: markdown
-    attributes:
-      value: |
-        개선 제안해주셔서 감사합니다! 💡
-        더 나은 사용자 경험을 위한 여러분의 의견이 소중합니다.
-
   - type: dropdown
     id: improvement-type
     attributes:
@@ -47,23 +41,6 @@ body:
     validations:
       required: true
 
-  - type: textarea
-    id: benefits
-    attributes:
-      label: "📈 개선 효과"
-      description: "이 개선으로 어떤 효과를 기대하시나요?"
-      placeholder: |
-        - 사용자가 업로드 상태를 명확히 알 수 있음
-        - 업로드 실패 시 빠른 재시도 가능
-        - 전체적인 UX 만족도 향상
-
-  - type: textarea
-    id: user-impact
-    attributes:
-      label: "👥 영향받는 사용자"
-      description: "어떤 사용자들이 이 개선의 혜택을 받을까요?"
-      placeholder: "파일을 업로드하는 모든 사용자 (월 약 1,000명)"
-
   - type: dropdown
     id: implementation-complexity
     attributes:
@@ -77,25 +54,8 @@ body:
         - "❓ 잘 모르겠음"
 
   - type: textarea
-    id: alternatives
-    attributes:
-      label: "🔄 대안책"
-      description: "다른 해결 방법이 있다면 알려주세요"
-      placeholder: "토스트 알림으로 업로드 완료를 알리는 방법도 있음"
-
-  - type: textarea
     id: references
     attributes:
       label: "📎 참고자료"
       description: "참고할 만한 링크, 스크린샷, 사례가 있다면 공유해주세요"
       placeholder: "비슷한 기능을 가진 다른 서비스의 예시나 디자인 가이드"
-
-  - type: checkboxes
-    id: terms
-    attributes:
-      label: "📋 체크리스트"
-      options:
-        - label: "기존 이슈를 검색했고, 중복되지 않습니다"
-          required: true
-        - label: "이 개선이 다른 기능에 부정적 영향을 주지 않을 것 같습니다"
-          required: true

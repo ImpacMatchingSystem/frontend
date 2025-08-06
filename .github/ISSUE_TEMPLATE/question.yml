@@ -42,10 +42,3 @@ body:
       label: "📚 조사한 내용"
       description: "이미 조사해본 내용이 있다면 공유해주세요"
       placeholder: "구글링으로 찾아본 몇 가지 옵션이 있지만, 우리 상황에 어떤 것이 적합한지 판단이 어렵습니다."
-
-  - type: textarea
-    id: expected-outcome
-    attributes:
-      label: "🎯 원하는 결과"
-      description: "이 토론을 통해 얻고 싶은 결과는 무엇인가요?"
-      placeholder: "팀 전체가 동의할 수 있는 기술 선택과 그 근거를 마련하고 싶습니다."

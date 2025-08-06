@@ -1,16 +1,10 @@
 name: 🐛 버그 리포트
 description: 버그나 문제를 신고합니다
-title: "🐛오류: [간단한 버그 설명]"
+title: "🐛오류: [버그 설명]"
 labels: ["🐛 오류"]
 assignees: []
 
 body:
-  - type: markdown
-    attributes:
-      value: |
-        버그를 신고해주셔서 감사합니다! 🐛
-        빠른 해결을 위해 최대한 자세히 작성해주세요.
-
   - type: textarea
     id: bug-description
     attributes:
@@ -65,27 +59,6 @@ body:
     validations:
       required: true
 
-  - type: input
-    id: device-info
-    attributes:
-      label: "📱 디바이스 정보"
-      description: "사용하신 디바이스를 알려주세요"
-      placeholder: "iPhone 12 Pro, Galaxy S21, MacBook Pro M1, etc."
-
-  - type: input
-    id: browser-info
-    attributes:
-      label: "🌐 브라우저 정보"
-      description: "사용하신 브라우저와 버전을 알려주세요"
-      placeholder: "Chrome 95.0, Safari 15.0, Firefox 94.0, etc."
-
-  - type: input
-    id: os-info
-    attributes:
-      label: "💻 운영체제 정보"
-      description: "사용하신 운영체제를 알려주세요"
-      placeholder: "macOS 12.0, Windows 11, iOS 15.1, Android 12, etc."
-
   - type: textarea
     id: screenshots
     attributes:
@@ -110,15 +83,3 @@ body:
       label: "📝 추가 정보"
       description: "다른 도움이 될 만한 정보가 있다면 알려주세요"
       placeholder: "특정 조건에서만 발생, 다른 브라우저에서는 정상 동작 등"
-
-  - type: checkboxes
-    id: terms
-    attributes:
-      label: "📋 체크리스트"
-      options:
-        - label: "기존 이슈를 검색했고, 중복되지 않습니다"
-          required: true
-        - label: "재현 단계를 직접 테스트해봤습니다"
-          required: true
-        - label: "최신 버전에서 발생하는 문제입니다"
-          required: true
