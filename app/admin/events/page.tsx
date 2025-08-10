@@ -1,11 +1,10 @@
 'use client'
 
-import type React from 'react'
-import { useState, useEffect } from 'react'
+import { useSession } from 'next-auth/react'
+import React, { useState, useEffect } from 'react'
 
-import { Calendar, Edit, Plus, Save, X } from 'lucide-react'
+import { Calendar, Save, Settings } from 'lucide-react'
 
-import { AdminGuard } from '@/components/admin/admin-guard'
 import { AdminHeader } from '@/components/layout/admin-header'
 import { Button } from '@/components/ui/button'
 import {
@@ -15,44 +14,99 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 
 import { useToast } from '@/hooks/use-toast'
 
-import { mockApi, type Event } from '@/lib/supabase/mock-api'
+interface EventSettings {
+  id: string
+  name: string
+  description?: string
+  startDate: string
+  endDate: string
+  venue?: string
+  headerImage?: string
+  headerText?: string
+  meetingDuration: number
+  operationStartTime: string
+  operationEndTime: string
+  lunchStartTime: string
+  lunchEndTime: string
+  status: 'UPCOMING' | 'ACTIVE' | 'ENDED'
+}
 
-export default function AdminEventsPage() {
-  const [events, setEvents] = useState<Event[]>([])
+export default function EventSettingsPage() {
+  const { data: session } = useSession()
+  const [eventData, setEventData] = useState<EventSettings>({
+    id: '',
+    name: '',
+    description: '',
+    startDate: '',
+    endDate: '',
+    venue: '',
+    headerImage: '',
+    headerText: '',
+    meetingDuration: 30,
+    operationStartTime: '09:00',
+    operationEndTime: '18:00',
+    lunchStartTime: '12:00',
+    lunchEndTime: '13:00',
+    status: 'ACTIVE',
+  })
   const [loading, setLoading] = useState(true)
-  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
+  const [saving, setSaving] = useState(false)
 
   const { toast } = useToast()
 
   useEffect(() => {
-    fetchEvents()
-  }, [])
+    if (session?.user) {
+      fetchEventData()
+    }
+  }, [session])
 
-  const fetchEvents = async () => {
+  const fetchEventData = async () => {
     try {
-      const data = await mockApi.events.getAll()
-      setEvents(data)
+      const response = await fetch('/api/event')
+
+      if (response.ok) {
+        const data = await response.json()
+        setEventData({
+          id: data.id,
+          name: data.name || '',
+          description: data.description || '',
+          startDate: data.startDate
+            ? new Date(data.startDate).toISOString().split('T')[0]
+            : '',
+          endDate: data.endDate
+            ? new Date(data.endDate).toISOString().split('T')[0]
+            : '',
+          venue: data.venue || '',
+          headerImage: data.headerImage || '',
+          headerText: data.headerText || '',
+          meetingDuration: data.meetingDuration || 30,
+          operationStartTime: data.operationStartTime || '09:00',
+          operationEndTime: data.operationEndTime || '18:00',
+          lunchStartTime: data.lunchStartTime || '12:00',
+          lunchEndTime: data.lunchEndTime || '13:00',
+          status: data.status || 'ACTIVE',
+        })
+      } else if (response.status === 404) {
+        // 행사가 없는 경우 - 기본값 유지
+        toast({
+          title: '알림',
+          description:
+            '설정된 행사가 없습니다. 새로운 행사 정보를 입력해주세요.',
+        })
+      } else {
+        throw new Error('행사 정보 조회 실패')
+      }
     } catch (error) {
+      console.error('Event fetch error:', error)
       toast({
         title: '데이터 로딩 오류',
-        description: '행사 목록을 불러오는데 실패했습니다.',
+        description: '행사 정보를 불러오는데 실패했습니다.',
         variant: 'destructive',
       })
     } finally {
@@ -60,541 +114,356 @@ export default function AdminEventsPage() {
     }
   }
 
-  const handleCreateEvent = async (
-    eventData: Omit<Event, 'id' | 'created_at'>
-  ) => {
-    try {
-      await mockApi.events.create(eventData)
+  const handleSave = async () => {
+    if (!eventData.name || !eventData.startDate || !eventData.endDate) {
       toast({
-        title: '행사 생성',
-        description: '새로운 행사가 성공적으로 생성되었습니다.',
-      })
-      setIsCreateDialogOpen(false)
-      fetchEvents()
-    } catch (error) {
-      toast({
-        title: '생성 실패',
-        description: '행사 생성 중 오류가 발생했습니다.',
+        title: '입력 오류',
+        description: '행사명, 시작일, 종료일은 필수 입력 항목입니다.',
         variant: 'destructive',
       })
+      return
     }
-  }
 
-  const handleUpdateEvent = async (eventData: Partial<Event>) => {
-    if (!selectedEvent) return
-
+    setSaving(true)
     try {
-      await mockApi.events.update(selectedEvent.id, eventData)
-      toast({
-        title: '행사 수정',
-        description: '행사 정보가 성공적으로 수정되었습니다.',
-      })
-      setIsEditDialogOpen(false)
-      setSelectedEvent(null)
-      fetchEvents()
-    } catch (error) {
-      toast({
-        title: '수정 실패',
-        description: '행사 수정 중 오류가 발생했습니다.',
-        variant: 'destructive',
-      })
-    }
-  }
-
-  const handleToggleActive = async (event: Event) => {
-    try {
-      // 다른 행사들을 비활성화하고 선택한 행사만 활성화
-      if (!event.is_active) {
-        await Promise.all(
-          events.map(e =>
-            mockApi.events.update(e.id, {
-              is_active: e.id === event.id,
-            })
-          )
-        )
-      } else {
-        await mockApi.events.update(event.id, {
-          is_active: false,
-        })
+      const saveData = {
+        name: eventData.name,
+        description: eventData.description || null,
+        startDate: new Date(eventData.startDate + 'T00:00:00Z').toISOString(),
+        endDate: new Date(eventData.endDate + 'T23:59:59Z').toISOString(),
+        venue: eventData.venue || null,
+        headerImage: eventData.headerImage || null,
+        headerText: eventData.headerText || null,
+        meetingDuration: eventData.meetingDuration,
+        operationStartTime: eventData.operationStartTime,
+        operationEndTime: eventData.operationEndTime,
+        lunchStartTime: eventData.lunchStartTime,
+        lunchEndTime: eventData.lunchEndTime,
+        status: eventData.status,
       }
 
-      toast({
-        title: event.is_active ? '행사 비활성화' : '행사 활성화',
-        description: `${event.title}이 ${event.is_active ? '비활성화' : '활성화'}되었습니다.`,
+      const response = await fetch('/api/event', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(saveData),
       })
 
-      fetchEvents()
-    } catch (error) {
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || '행사 정보 저장에 실패했습니다')
+      }
+
+      const updatedEvent = await response.json()
+
+      // 업데이트된 데이터로 상태 갱신
+      setEventData(prev => ({
+        ...prev,
+        id: updatedEvent.id,
+      }))
+
       toast({
-        title: '상태 변경 실패',
-        description: '행사 상태 변경 중 오류가 발생했습니다.',
+        title: '저장 완료',
+        description: '행사 정보가 성공적으로 저장되었습니다.',
+      })
+    } catch (error) {
+      console.error('Event save error:', error)
+      toast({
+        title: '저장 실패',
+        description: '행사 정보 저장 중 오류가 발생했습니다.',
         variant: 'destructive',
       })
+    } finally {
+      setSaving(false)
     }
+  }
+
+  const handleInputChange = (
+    field: keyof EventSettings,
+    value: string | number
+  ) => {
+    setEventData(prev => ({
+      ...prev,
+      [field]: value,
+    }))
   }
 
   if (loading) {
     return (
-      <AdminGuard>
-        <div className="min-h-screen bg-gray-50">
-          <AdminHeader />
-          <div className="container mx-auto px-4 py-8">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-              <p className="mt-4 text-gray-600">행사 목록을 불러오는 중...</p>
-            </div>
+      <div className="min-h-screen bg-gray-50">
+        <AdminHeader />
+        <div className="container mx-auto px-4 py-8">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+            <p className="mt-4 text-gray-600">행사 정보를 불러오는 중...</p>
           </div>
         </div>
-      </AdminGuard>
+      </div>
     )
   }
 
   return (
-    <AdminGuard>
-      <div className="min-h-screen bg-gray-50">
-        <AdminHeader />
+    <div className="min-h-screen bg-gray-50">
+      <AdminHeader />
 
-        <div className="container mx-auto px-4 py-8">
-          <div className="mb-8 flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                행사 관리
-              </h1>
-              <p className="text-gray-600">
-                비즈니스 매칭 행사를 생성하고 관리하세요.
-              </p>
-            </div>
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">행사 설정</h1>
+          <p className="text-gray-600">
+            현재 운영 중인 행사의 정보를 관리하세요.
+          </p>
+        </div>
 
-            <Dialog
-              open={isCreateDialogOpen}
-              onOpenChange={setIsCreateDialogOpen}
-            >
-              <DialogTrigger asChild>
-                <Button>
-                  <Plus className="mr-2 h-4 w-4" />새 행사 생성
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl">
-                <DialogHeader>
-                  <DialogTitle>새 행사 생성</DialogTitle>
-                  <DialogDescription>
-                    새로운 비즈니스 매칭 행사를 생성합니다.
-                  </DialogDescription>
-                </DialogHeader>
-                <EventForm
-                  onSave={handleCreateEvent}
-                  onCancel={() => setIsCreateDialogOpen(false)}
+        <div className="space-y-6">
+          {/* 기본 정보 */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Calendar className="h-5 w-5" />
+                기본 정보
+              </CardTitle>
+              <CardDescription>
+                행사의 기본적인 정보를 설정합니다.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name">행사명 *</Label>
+                  <Input
+                    id="name"
+                    value={eventData.name}
+                    onChange={e => handleInputChange('name', e.target.value)}
+                    placeholder="예: 2025 Tech Innovation Fair"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="venue">행사 장소</Label>
+                  <Input
+                    id="venue"
+                    value={eventData.venue}
+                    onChange={e => handleInputChange('venue', e.target.value)}
+                    placeholder="예: 코엑스 컨벤션센터"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="description">행사 설명</Label>
+                <Textarea
+                  id="description"
+                  value={eventData.description}
+                  onChange={e =>
+                    handleInputChange('description', e.target.value)
+                  }
+                  rows={3}
+                  placeholder="행사에 대한 간단한 설명을 입력하세요"
                 />
-              </DialogContent>
-            </Dialog>
-          </div>
+              </div>
 
-          {/* 행사 목록 */}
-          <div className="space-y-6">
-            {events.length === 0 ? (
-              <Card>
-                <CardContent className="text-center py-12">
-                  <Calendar className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                  <p className="text-gray-500 text-lg mb-4">
-                    등록된 행사가 없습니다.
-                  </p>
-                  <Dialog
-                    open={isCreateDialogOpen}
-                    onOpenChange={setIsCreateDialogOpen}
-                  >
-                    <DialogTrigger asChild>
-                      <Button>
-                        <Plus className="mr-2 h-4 w-4" />첫 번째 행사 생성하기
-                      </Button>
-                    </DialogTrigger>
-                  </Dialog>
-                </CardContent>
-              </Card>
-            ) : (
-              events.map(event => (
-                <Card
-                  key={event.id}
-                  className={event.is_active ? 'ring-2 ring-primary' : ''}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="startDate">시작일 *</Label>
+                  <Input
+                    id="startDate"
+                    type="date"
+                    value={eventData.startDate}
+                    onChange={e =>
+                      handleInputChange('startDate', e.target.value)
+                    }
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="endDate">종료일 *</Label>
+                  <Input
+                    id="endDate"
+                    type="date"
+                    value={eventData.endDate}
+                    onChange={e => handleInputChange('endDate', e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* 헤더 설정 */}
+          <Card>
+            <CardHeader>
+              <CardTitle>헤더 설정</CardTitle>
+              <CardDescription>
+                행사 페이지 상단에 표시될 이미지와 텍스트를 설정합니다.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="headerText">헤더 텍스트</Label>
+                <Input
+                  id="headerText"
+                  value={eventData.headerText}
+                  onChange={e =>
+                    handleInputChange('headerText', e.target.value)
+                  }
+                  placeholder="예: 혁신의 미래를 만나보세요"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="headerImage">헤더 이미지 URL</Label>
+                <Input
+                  id="headerImage"
+                  type="url"
+                  value={eventData.headerImage}
+                  onChange={e =>
+                    handleInputChange('headerImage', e.target.value)
+                  }
+                  placeholder="https://example.com/header-image.jpg"
+                />
+              </div>
+
+              {eventData.headerImage && (
+                <div className="mt-4">
+                  <Label className="text-sm font-medium text-gray-600">
+                    미리보기
+                  </Label>
+                  <div className="mt-2 aspect-video max-w-md bg-gray-100 rounded-lg overflow-hidden">
+                    <img
+                      src={eventData.headerImage}
+                      alt="헤더 이미지 미리보기"
+                      className="w-full h-full object-cover"
+                      onError={e => {
+                        e.currentTarget.style.display = 'none'
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* 미팅 설정 */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Settings className="h-5 w-5" />
+                미팅 설정
+              </CardTitle>
+              <CardDescription>
+                미팅 시간과 운영 시간을 설정합니다.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="meetingDuration">미팅 시간 (분)</Label>
+                <select
+                  id="meetingDuration"
+                  value={eventData.meetingDuration}
+                  onChange={e =>
+                    handleInputChange(
+                      'meetingDuration',
+                      parseInt(e.target.value)
+                    )
+                  }
+                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
                 >
-                  <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <CardTitle className="text-xl">
-                            {event.title}
-                          </CardTitle>
-                          {event.is_active && (
-                            <span className="px-2 py-1 bg-primary text-primary-foreground text-xs rounded-full">
-                              활성 행사
-                            </span>
-                          )}
-                        </div>
-                        <CardDescription className="text-base">
-                          {event.description}
-                        </CardDescription>
-                      </div>
+                  <option value={15}>15분</option>
+                  <option value={30}>30분</option>
+                  <option value={45}>45분</option>
+                  <option value={60}>60분</option>
+                </select>
+              </div>
 
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant={event.is_active ? 'outline' : 'default'}
-                          size="sm"
-                          onClick={() => handleToggleActive(event)}
-                        >
-                          {event.is_active ? '비활성화' : '활성화'}
-                        </Button>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="operationStartTime">운영 시작 시간</Label>
+                  <Input
+                    id="operationStartTime"
+                    type="time"
+                    value={eventData.operationStartTime}
+                    onChange={e =>
+                      handleInputChange('operationStartTime', e.target.value)
+                    }
+                  />
+                </div>
 
-                        <Dialog
-                          open={isEditDialogOpen}
-                          onOpenChange={setIsEditDialogOpen}
-                        >
-                          <DialogTrigger asChild>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setSelectedEvent(event)}
-                            >
-                              <Edit className="mr-2 h-4 w-4" />
-                              수정
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent className="max-w-2xl">
-                            <DialogHeader>
-                              <DialogTitle>행사 정보 수정</DialogTitle>
-                              <DialogDescription>
-                                행사의 상세 정보를 수정할 수 있습니다.
-                              </DialogDescription>
-                            </DialogHeader>
-                            {selectedEvent && (
-                              <EventForm
-                                event={selectedEvent}
-                                onSave={handleUpdateEvent}
-                                onCancel={() => {
-                                  setIsEditDialogOpen(false)
-                                  setSelectedEvent(null)
-                                }}
-                              />
-                            )}
-                          </DialogContent>
-                        </Dialog>
-                      </div>
-                    </div>
-                  </CardHeader>
+                <div className="space-y-2">
+                  <Label htmlFor="operationEndTime">운영 종료 시간</Label>
+                  <Input
+                    id="operationEndTime"
+                    type="time"
+                    value={eventData.operationEndTime}
+                    onChange={e =>
+                      handleInputChange('operationEndTime', e.target.value)
+                    }
+                  />
+                </div>
+              </div>
 
-                  <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                      {/* 행사 이미지 */}
-                      <div className="space-y-2">
-                        <Label className="text-sm font-medium">
-                          행사 이미지
-                        </Label>
-                        <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden">
-                          {event.header_image_url ? (
-                            <img
-                              src={event.header_image_url || '/placeholder.svg'}
-                              alt={event.title}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center text-gray-400">
-                              <Calendar className="h-8 w-8" />
-                            </div>
-                          )}
-                        </div>
-                      </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="lunchStartTime">점심시간 시작</Label>
+                  <Input
+                    id="lunchStartTime"
+                    type="time"
+                    value={eventData.lunchStartTime}
+                    onChange={e =>
+                      handleInputChange('lunchStartTime', e.target.value)
+                    }
+                  />
+                </div>
 
-                      {/* 행사 정보 */}
-                      <div className="space-y-4">
-                        <div>
-                          <Label className="text-sm font-medium text-gray-600">
-                            행사 기간
-                          </Label>
-                          <p className="text-sm">
-                            {new Date(event.start_date).toLocaleDateString(
-                              'ko-KR'
-                            )}{' '}
-                            -{' '}
-                            {new Date(event.end_date).toLocaleDateString(
-                              'ko-KR'
-                            )}
-                          </p>
-                        </div>
+                <div className="space-y-2">
+                  <Label htmlFor="lunchEndTime">점심시간 종료</Label>
+                  <Input
+                    id="lunchEndTime"
+                    type="time"
+                    value={eventData.lunchEndTime}
+                    onChange={e =>
+                      handleInputChange('lunchEndTime', e.target.value)
+                    }
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
-                        <div>
-                          <Label className="text-sm font-medium text-gray-600">
-                            미팅 시간
-                          </Label>
-                          <p className="text-sm">{event.meeting_duration}분</p>
-                        </div>
+          {/* 행사 상태 */}
+          <Card>
+            <CardHeader>
+              <CardTitle>행사 상태</CardTitle>
+              <CardDescription>현재 행사의 상태를 설정합니다.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <Label htmlFor="status">상태</Label>
+                <select
+                  id="status"
+                  value={eventData.status}
+                  onChange={e => handleInputChange('status', e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
+                >
+                  <option value="UPCOMING">준비중</option>
+                  <option value="ACTIVE">진행중</option>
+                  <option value="ENDED">종료됨</option>
+                </select>
+              </div>
+            </CardContent>
+          </Card>
 
-                        <div>
-                          <Label className="text-sm font-medium text-gray-600">
-                            생성일
-                          </Label>
-                          <p className="text-sm">
-                            {new Date(event.created_at).toLocaleDateString(
-                              'ko-KR'
-                            )}
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* 운영 시간 */}
-                      <div className="space-y-4">
-                        <div>
-                          <Label className="text-sm font-medium text-gray-600">
-                            운영 시간
-                          </Label>
-                          <p className="text-sm">
-                            {event.business_hours.start} -{' '}
-                            {event.business_hours.end}
-                          </p>
-                        </div>
-
-                        <div>
-                          <Label className="text-sm font-medium text-gray-600">
-                            점심시간
-                          </Label>
-                          <p className="text-sm">
-                            {event.business_hours.lunch_start} -{' '}
-                            {event.business_hours.lunch_end}
-                          </p>
-                        </div>
-
-                        <div>
-                          <Label className="text-sm font-medium text-gray-600">
-                            상태
-                          </Label>
-                          <p
-                            className={`text-sm ${event.is_active ? 'text-green-600' : 'text-gray-600'}`}
-                          >
-                            {event.is_active ? '활성' : '비활성'}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
-            )}
+          {/* 저장 버튼 */}
+          <div className="flex justify-end">
+            <Button onClick={handleSave} disabled={saving} size="lg">
+              <Save className="mr-2 h-4 w-4" />
+              {saving ? '저장 중...' : '설정 저장'}
+            </Button>
           </div>
         </div>
       </div>
-    </AdminGuard>
-  )
-}
-
-function EventForm({
-  event,
-  onSave,
-  onCancel,
-}: {
-  event?: Event
-  onSave: (data: any) => void
-  onCancel: () => void
-}) {
-  const [formData, setFormData] = useState({
-    title: event?.title || '',
-    description: event?.description || '',
-    header_image_url: event?.header_image_url || '',
-    start_date: event?.start_date || '',
-    end_date: event?.end_date || '',
-    meeting_duration: event?.meeting_duration || 30,
-    business_hours: event?.business_hours || {
-      start: '09:00',
-      end: '18:00',
-      lunch_start: '12:00',
-      lunch_end: '13:00',
-    },
-    is_active: event?.is_active || false,
-  })
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    onSave(formData)
-  }
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="title">행사명 *</Label>
-        <Input
-          id="title"
-          value={formData.title}
-          onChange={e =>
-            setFormData(prev => ({ ...prev, title: e.target.value }))
-          }
-          required
-        />
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="description">행사 설명</Label>
-        <Textarea
-          id="description"
-          value={formData.description}
-          onChange={e =>
-            setFormData(prev => ({ ...prev, description: e.target.value }))
-          }
-          rows={3}
-        />
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="header_image_url">헤더 이미지 URL</Label>
-        <Input
-          id="header_image_url"
-          type="url"
-          value={formData.header_image_url}
-          onChange={e =>
-            setFormData(prev => ({ ...prev, header_image_url: e.target.value }))
-          }
-          placeholder="https://example.com/image.jpg"
-        />
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="start_date">시작일 *</Label>
-          <Input
-            id="start_date"
-            type="date"
-            value={formData.start_date}
-            onChange={e =>
-              setFormData(prev => ({ ...prev, start_date: e.target.value }))
-            }
-            required
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="end_date">종료일 *</Label>
-          <Input
-            id="end_date"
-            type="date"
-            value={formData.end_date}
-            onChange={e =>
-              setFormData(prev => ({ ...prev, end_date: e.target.value }))
-            }
-            required
-          />
-        </div>
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="meeting_duration">미팅 시간 (분)</Label>
-        <select
-          id="meeting_duration"
-          value={formData.meeting_duration}
-          onChange={e =>
-            setFormData(prev => ({
-              ...prev,
-              meeting_duration: Number.parseInt(e.target.value),
-            }))
-          }
-          className="w-full p-2 border border-gray-300 rounded-md"
-        >
-          <option value={15}>15분</option>
-          <option value={30}>30분</option>
-          <option value={60}>60분</option>
-        </select>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="business_start">운영 시작 시간</Label>
-          <Input
-            id="business_start"
-            type="time"
-            value={formData.business_hours.start}
-            onChange={e =>
-              setFormData(prev => ({
-                ...prev,
-                business_hours: {
-                  ...prev.business_hours,
-                  start: e.target.value,
-                },
-              }))
-            }
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="business_end">운영 종료 시간</Label>
-          <Input
-            id="business_end"
-            type="time"
-            value={formData.business_hours.end}
-            onChange={e =>
-              setFormData(prev => ({
-                ...prev,
-                business_hours: { ...prev.business_hours, end: e.target.value },
-              }))
-            }
-          />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="lunch_start">점심시간 시작</Label>
-          <Input
-            id="lunch_start"
-            type="time"
-            value={formData.business_hours.lunch_start}
-            onChange={e =>
-              setFormData(prev => ({
-                ...prev,
-                business_hours: {
-                  ...prev.business_hours,
-                  lunch_start: e.target.value,
-                },
-              }))
-            }
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="lunch_end">점심시간 종료</Label>
-          <Input
-            id="lunch_end"
-            type="time"
-            value={formData.business_hours.lunch_end}
-            onChange={e =>
-              setFormData(prev => ({
-                ...prev,
-                business_hours: {
-                  ...prev.business_hours,
-                  lunch_end: e.target.value,
-                },
-              }))
-            }
-          />
-        </div>
-      </div>
-
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <Switch
-            id="is_active"
-            checked={formData.is_active}
-            onCheckedChange={checked =>
-              setFormData(prev => ({ ...prev, is_active: checked }))
-            }
-          />
-          <Label htmlFor="is_active">활성 상태</Label>
-        </div>
-      </div>
-
-      <div className="flex justify-end space-x-2 pt-4">
-        <Button type="button" variant="outline" onClick={onCancel}>
-          <X className="mr-2 h-4 w-4" />
-          취소
-        </Button>
-        <Button type="submit">
-          <Save className="mr-2 h-4 w-4" />
-          저장
-        </Button>
-      </div>
-    </form>
+    </div>
   )
 }

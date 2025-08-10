@@ -1,0 +1,135 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String   @id @default(cuid())
+  email       String   @unique
+  password    String   // 해시된 비밀번호
+  name        String
+  role        UserRole @default(BUYER)
+  website     String?  // 회사 홈페이지 (회사인 경우)
+  description String?  // 기업소개 또는 바이어 소개
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // 관계
+  buyerMeetings   Meeting[] @relation("BuyerMeetings")
+  companyMeetings Meeting[] @relation("CompanyMeetings")
+  timeSlots       TimeSlot[]
+  notifications   Notification[]
+
+  @@map("users")
+}
+
+model Event {
+  id              String    @id @default(cuid())
+  name            String
+  description     String?
+  startDate       DateTime
+  endDate         DateTime
+  venue           String?
+  
+  // 헤더 설정
+  headerImage     String?   // 이미지 URL
+  headerText      String?   // 헤더 텍스트
+  
+  // 미팅 시간 설정
+  meetingDuration Int       @default(30)  // 미팅 시간 (분)
+  
+  // 운영 시간 설정
+  operationStartTime String @default("09:00")  // "HH:MM" 형식
+  operationEndTime   String @default("18:00")  // "HH:MM" 형식
+  
+  // 점심시간 설정
+  lunchStartTime  String @default("12:00")     // "HH:MM" 형식
+  lunchEndTime    String @default("13:00")     // "HH:MM" 형식
+  
+  status          EventStatus @default(ACTIVE)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@map("events")
+}
+
+model TimeSlot {
+  id        String   @id @default(cuid())
+  userId    String   // 회사 사용자 ID
+  startTime DateTime
+  endTime   DateTime
+  isBooked  Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  // 관계
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  meeting Meeting?
+
+  // 중복 방지: 같은 회사의 같은 시간대는 하나만
+  @@unique([userId, startTime])
+  @@map("time_slots")
+}
+
+model Meeting {
+  id         String        @id @default(cuid())
+  companyId  String        // 회사 사용자 ID
+  buyerId    String        // 바이어 사용자 ID
+  timeSlotId String        @unique
+  status     MeetingStatus @default(PENDING)
+  message    String?
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  // 관계
+  company  User     @relation("CompanyMeetings", fields: [companyId], references: [id])
+  buyer    User     @relation("BuyerMeetings", fields: [buyerId], references: [id])
+  timeSlot TimeSlot @relation(fields: [timeSlotId], references: [id], onDelete: Cascade)
+
+  @@map("meetings")
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  type      NotificationType
+  userId    String
+  title     String
+  message   String
+  relatedId String?   // 관련 미팅 ID
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+enum UserRole {
+  ADMIN
+  COMPANY
+  BUYER
+}
+
+enum MeetingStatus {
+  PENDING
+  CONFIRMED
+  REJECTED
+  CANCELLED
+}
+
+enum EventStatus {
+  UPCOMING
+  ACTIVE
+  ENDED
+}
+
+enum NotificationType {
+  MEETING_REQUEST
+  MEETING_APPROVED
+  MEETING_REJECTED
+  MEETING_CANCELLED
+  SYSTEM_NOTICE
+}

@@ -150,7 +150,6 @@ import { Card } from '@/components/ui/card'
 // 4. 내부 훅/유틸/라이브러리 (@/hooks, @/lib)
 import { useAuth } from '@/hooks/use-auth'
 
-import { supabase } from '@/lib/supabase/client'
 import { formatDate } from '@/lib/utils/date-utils'
 
 // 5. 타입 import (맨 마지막, type 키워드 사용)
@@ -356,8 +355,6 @@ export type UserRole = 'admin' | 'buyer' | 'company'
 import { NextRequest, NextResponse } from 'next/server'
 
 import { z } from 'zod'
-
-import { supabase } from '@/lib/supabase/client'
 
 // 요청 스키마 정의
 const createMeetingSchema = z.object({
