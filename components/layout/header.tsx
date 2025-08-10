@@ -3,8 +3,8 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { useSession, signOut } from 'next-auth/react'
 
-import { useAuthStore } from '@/store/auth-store'
 import { Building2, Menu, X, User, LogOut } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -20,33 +20,45 @@ import { useToast } from '@/hooks/use-toast'
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const { user, clearUser } = useAuthStore()
+  const { data: session, status } = useSession()
   const router = useRouter()
   const { toast } = useToast()
 
-  const handleSignOut = () => {
-    clearUser()
-    router.push('/')
-    toast({
-      title: '로그아웃 완료',
-      description: '성공적으로 로그아웃되었습니다.',
-    })
+  const handleSignOut = async () => {
+    try {
+      await signOut({ redirect: false })
+      router.push('/')
+      toast({
+        title: '로그아웃 완료',
+        description: '성공적으로 로그아웃되었습니다.',
+      })
+    } catch (error) {
+      toast({
+        title: '로그아웃 오류',
+        description: '로그아웃 중 오류가 발생했습니다.',
+        variant: 'destructive',
+      })
+    }
   }
 
   const getDashboardLink = () => {
-    if (!user) return '/'
+    if (!session?.user) return '/'
 
-    switch (user.role) {
-      case 'company':
+    const userRole = (session.user as any).role
+
+    switch (userRole) {
+      case 'COMPANY':
         return '/dashboard/company'
-      case 'buyer':
+      case 'BUYER':
         return '/dashboard/buyer'
-      case 'admin':
+      case 'ADMIN':
         return '/admin/dashboard'
       default:
         return '/'
     }
   }
+
+  const user = session?.user
 
   return (
     <header className="bg-white shadow-sm border-b">
@@ -68,7 +80,12 @@ export function Header() {
             >
               기업 목록
             </Link>
-            {user ? (
+            
+            {status === 'loading' ? (
+              <div className="flex items-center space-x-2">
+                <div className="w-6 h-6 border-2 border-gray-300 border-t-transparent rounded-full animate-spin"></div>
+              </div>
+            ) : user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
@@ -135,7 +152,13 @@ export function Header() {
               >
                 기업 목록
               </Link>
-              {user ? (
+              
+              {status === 'loading' ? (
+                <div className="flex items-center space-x-2 px-3 py-2">
+                  <div className="w-4 h-4 border-2 border-gray-300 border-t-transparent rounded-full animate-spin"></div>
+                  <span className="text-gray-600">로딩 중...</span>
+                </div>
+              ) : user ? (
                 <>
                   <Link
                     href={getDashboardLink()}

@@ -2,8 +2,9 @@
 
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
+import { useSession } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
 
-import { useAuthStore } from '@/store/auth-store'
 import { Calendar, Clock, Users, CheckCircle, AlertCircle } from 'lucide-react'
 
 import { Header } from '@/components/layout/header'
@@ -19,8 +20,6 @@ import {
 
 import { useToast } from '@/hooks/use-toast'
 
-import { mockApi, type Meeting, type Buyer } from '@/lib/supabase/mock-api'
-
 interface DashboardStats {
   totalMeetings: number
   pendingMeetings: number
@@ -28,72 +27,103 @@ interface DashboardStats {
   todayMeetings: number
 }
 
-interface MeetingWithBuyer extends Meeting {
-  buyer: Buyer
+interface MeetingWithDetails {
+  id: string
+  status: 'PENDING' | 'CONFIRMED' | 'REJECTED' | 'CANCELLED'
+  message?: string
+  createdAt: string
+  updatedAt: string
+  company: {
+    id: string
+    name: string
+    email: string
+  }
+  buyer: {
+    id: string
+    name: string
+    email: string
+    description?: string
+  }
+  timeSlot: {
+    id: string
+    startTime: string
+    endTime: string
+  }
 }
 
 export default function CompanyDashboard() {
+  const { data: session, status } = useSession()
+  const router = useRouter()
   const [stats, setStats] = useState<DashboardStats>({
     totalMeetings: 0,
     pendingMeetings: 0,
     confirmedMeetings: 0,
     todayMeetings: 0,
   })
-  const [recentMeetings, setRecentMeetings] = useState<MeetingWithBuyer[]>([])
-  const [todayMeetings, setTodayMeetings] = useState<MeetingWithBuyer[]>([])
+  const [recentMeetings, setRecentMeetings] = useState<MeetingWithDetails[]>([])
+  const [todayMeetings, setTodayMeetings] = useState<MeetingWithDetails[]>([])
   const [loading, setLoading] = useState(true)
 
-  const { user } = useAuthStore()
   const { toast } = useToast()
 
   useEffect(() => {
-    if (user) {
-      fetchDashboardData()
+    if (status === 'loading') return
+
+    if (!session?.user) {
+      router.push('/login')
+      return
     }
-  }, [user])
+
+    if ((session.user as any).role !== 'COMPANY') {
+      toast({
+        title: '접근 권한 없음',
+        description: '기업만 접근할 수 있는 페이지입니다.',
+        variant: 'destructive',
+      })
+      router.push('/')
+      return
+    }
+
+    fetchDashboardData()
+  }, [session, status, router])
 
   const fetchDashboardData = async () => {
-    if (!user) return
+    if (!session?.user) return
 
     try {
-      // 기업 정보 조회
-      const company = await mockApi.companies.getByEmail(user.email)
-      if (!company) return
+      const response = await fetch('/api/meetings')
+      
+      if (!response.ok) {
+        throw new Error('미팅 목록 조회 실패')
+      }
 
-      // 미팅 목록 조회
-      const meetings = await mockApi.meetings.getByCompanyId(company.id)
-      const buyers = await mockApi.buyers.getAll()
-
-      // 미팅과 바이어 정보 결합
-      const meetingsWithBuyers: MeetingWithBuyer[] = meetings
-        .map(meeting => {
-          const buyer = buyers.find(b => b.id === meeting.buyer_id)
-          return { ...meeting, buyer: buyer! }
-        })
-        .filter(m => m.buyer)
+      const meetingsData = await response.json()
+      const meetings = Array.isArray(meetingsData) ? meetingsData : []
 
       const today = new Date().toDateString()
 
       const stats = {
-        totalMeetings: meetingsWithBuyers.length,
-        pendingMeetings: meetingsWithBuyers.filter(m => m.status === 'pending')
-          .length,
-        confirmedMeetings: meetingsWithBuyers.filter(
-          m => m.status === 'confirmed'
-        ).length,
-        todayMeetings: meetingsWithBuyers.filter(
-          m => new Date(m.meeting_time).toDateString() === today
+        totalMeetings: meetings.length,
+        pendingMeetings: meetings.filter(m => m.status === 'PENDING').length,
+        confirmedMeetings: meetings.filter(m => m.status === 'CONFIRMED').length,
+        todayMeetings: meetings.filter(m => 
+          new Date(m.timeSlot.startTime).toDateString() === today
         ).length,
       }
 
-      setStats(stats)
-      setRecentMeetings(meetingsWithBuyers.slice(0, 5))
-      setTodayMeetings(
-        meetingsWithBuyers.filter(
-          m => new Date(m.meeting_time).toDateString() === today
-        )
+      const sortedMeetings = meetings.sort((a: any, b: any) => 
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       )
+
+      const todayMeetingsList = meetings.filter(m => 
+        new Date(m.timeSlot.startTime).toDateString() === today
+      )
+
+      setStats(stats)
+      setRecentMeetings(sortedMeetings.slice(0, 5))
+      setTodayMeetings(todayMeetingsList)
     } catch (error) {
+      console.error('Dashboard data fetch error:', error)
       toast({
         title: '데이터 로딩 오류',
         description: '대시보드 데이터를 불러오는데 실패했습니다.',
@@ -106,20 +136,29 @@ export default function CompanyDashboard() {
 
   const handleMeetingAction = async (
     meetingId: string,
-    action: 'confirmed' | 'rejected'
+    action: 'CONFIRMED' | 'REJECTED'
   ) => {
     try {
-      await mockApi.meetings.update(meetingId, {
-        status: action,
+      const response = await fetch(`/api/meetings/${meetingId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status: action }),
       })
 
+      if (!response.ok) {
+        throw new Error('미팅 상태 변경 실패')
+      }
+
       toast({
-        title: action === 'confirmed' ? '미팅 승인' : '미팅 거절',
-        description: `미팅이 ${action === 'confirmed' ? '승인' : '거절'}되었습니다.`,
+        title: action === 'CONFIRMED' ? '미팅 승인' : '미팅 거절',
+        description: `미팅이 ${action === 'CONFIRMED' ? '승인' : '거절'}되었습니다.`,
       })
 
       fetchDashboardData()
     } catch (error) {
+      console.error('Meeting action error:', error)
       toast({
         title: '오류',
         description: '미팅 상태 변경에 실패했습니다.',
@@ -130,25 +169,28 @@ export default function CompanyDashboard() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'pending':
+      case 'PENDING':
         return (
-          <Badge
-            variant="outline"
-            className="text-yellow-600 border-yellow-600"
-          >
+          <Badge variant="outline" className="text-yellow-600 border-yellow-600">
             대기중
           </Badge>
         )
-      case 'confirmed':
+      case 'CONFIRMED':
         return (
           <Badge variant="outline" className="text-green-600 border-green-600">
             승인됨
           </Badge>
         )
-      case 'rejected':
+      case 'REJECTED':
         return (
           <Badge variant="outline" className="text-red-600 border-red-600">
             거절됨
+          </Badge>
+        )
+      case 'CANCELLED':
+        return (
+          <Badge variant="outline" className="text-gray-600 border-gray-600">
+            취소됨
           </Badge>
         )
       default:
@@ -156,7 +198,14 @@ export default function CompanyDashboard() {
     }
   }
 
-  if (loading) {
+  const formatTime = (dateString: string) => {
+    return new Date(dateString).toLocaleTimeString('ko-KR', {
+      hour: '2-digit',
+      minute: '2-digit',
+    })
+  }
+
+  if (status === 'loading' || loading) {
     return (
       <div className="min-h-screen bg-gray-50">
         <Header />
@@ -170,15 +219,19 @@ export default function CompanyDashboard() {
     )
   }
 
+  if (!session?.user || (session.user as any).role !== 'COMPANY') {
+    return null
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
 
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">대시보드</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">기업 대시보드</h1>
           <p className="text-gray-600">
-            안녕하세요, {user?.name}님! 오늘의 미팅 현황을 확인해보세요.
+            안녕하세요, {session.user.name}님! 오늘의 미팅 현황을 확인해보세요.
           </p>
         </div>
 
@@ -262,13 +315,7 @@ export default function CompanyDashboard() {
                       <div>
                         <p className="font-medium">{meeting.buyer.name}</p>
                         <p className="text-sm text-gray-600">
-                          {new Date(meeting.meeting_time).toLocaleTimeString(
-                            'ko-KR',
-                            {
-                              hour: '2-digit',
-                              minute: '2-digit',
-                            }
-                          )}
+                          {formatTime(meeting.timeSlot.startTime)} - {formatTime(meeting.timeSlot.endTime)}
                         </p>
                       </div>
                       {getStatusBadge(meeting.status)}
@@ -306,36 +353,28 @@ export default function CompanyDashboard() {
                         <div>
                           <p className="font-medium">{meeting.buyer.name}</p>
                           <p className="text-sm text-gray-600">
-                            {meeting.buyer.company_name || meeting.buyer.email}
+                            {meeting.buyer.email}
                           </p>
                           <p className="text-sm text-gray-500">
-                            {new Date(meeting.meeting_time).toLocaleDateString(
-                              'ko-KR'
-                            )}{' '}
-                            {new Date(meeting.meeting_time).toLocaleTimeString(
-                              'ko-KR',
-                              {
-                                hour: '2-digit',
-                                minute: '2-digit',
-                              }
-                            )}
+                            {new Date(meeting.timeSlot.startTime).toLocaleDateString('ko-KR')}{' '}
+                            {formatTime(meeting.timeSlot.startTime)}
                           </p>
                         </div>
                         {getStatusBadge(meeting.status)}
                       </div>
 
-                      {meeting.buyer_message && (
+                      {meeting.message && (
                         <p className="text-sm text-gray-600 mb-2">
-                          "{meeting.buyer_message}"
+                          "{meeting.message}"
                         </p>
                       )}
 
-                      {meeting.status === 'pending' && (
+                      {meeting.status === 'PENDING' && (
                         <div className="flex gap-2">
                           <Button
                             size="sm"
                             onClick={() =>
-                              handleMeetingAction(meeting.id, 'confirmed')
+                              handleMeetingAction(meeting.id, 'CONFIRMED')
                             }
                           >
                             승인
@@ -344,7 +383,7 @@ export default function CompanyDashboard() {
                             size="sm"
                             variant="outline"
                             onClick={() =>
-                              handleMeetingAction(meeting.id, 'rejected')
+                              handleMeetingAction(meeting.id, 'REJECTED')
                             }
                           >
                             거절

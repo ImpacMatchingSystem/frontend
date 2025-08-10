@@ -14,7 +14,6 @@ import {
   Trash2,
 } from 'lucide-react'
 
-import { AdminGuard } from '@/components/admin/admin-guard'
 import { ExcelUpload } from '@/components/admin/excel-upload'
 import { AdminHeader } from '@/components/layout/admin-header'
 import { Badge } from '@/components/ui/badge'
@@ -45,7 +44,21 @@ import { Label } from '@/components/ui/label'
 
 import { useToast } from '@/hooks/use-toast'
 
-import { mockApi, type Buyer } from '@/lib/supabase/mock-api'
+// 새로운 타입 정의 (Prisma 스키마 기반)
+interface Buyer {
+  id: string
+  name: string
+  email: string
+  role: 'BUYER'
+  website?: string | null
+  description?: string | null
+  createdAt: string
+  _count?: {
+    buyerMeetings: number
+    companyMeetings: number
+    timeSlots: number
+  }
+}
 
 export default function AdminBuyersPage() {
   const [buyers, setBuyers] = useState<Buyer[]>([])
@@ -69,9 +82,21 @@ export default function AdminBuyersPage() {
 
   const fetchBuyers = async () => {
     try {
-      const data = await mockApi.buyers.getAll()
-      setBuyers(data)
+      const response = await fetch('/api/admin/users?role=BUYER', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`)
+      }
+
+      const data = await response.json()
+      setBuyers(data.users || [])
     } catch (error) {
+      console.error('Failed to fetch buyers:', error)
       toast({
         title: '데이터 로딩 오류',
         description: '바이어 목록을 불러오는데 실패했습니다.',
@@ -90,18 +115,31 @@ export default function AdminBuyersPage() {
         buyer =>
           buyer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
           buyer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          buyer.company_name?.toLowerCase().includes(searchTerm.toLowerCase())
+          buyer.description?.toLowerCase().includes(searchTerm.toLowerCase())
       )
     }
 
     setFilteredBuyers(filtered)
   }
 
-  const handleCreateBuyer = async (
-    buyerData: Omit<Buyer, 'id' | 'created_at'>
-  ) => {
+  const handleCreateBuyer = async (buyerData: any) => {
     try {
-      await mockApi.buyers.create(buyerData)
+      const response = await fetch('/api/admin/users', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          ...buyerData,
+          role: 'BUYER'
+        })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || '바이어 생성에 실패했습니다')
+      }
+
       toast({
         title: '바이어 생성',
         description: '새로운 바이어가 성공적으로 생성되었습니다.',
@@ -111,7 +149,7 @@ export default function AdminBuyersPage() {
     } catch (error) {
       toast({
         title: '생성 실패',
-        description: '바이어 생성 중 오류가 발생했습니다.',
+        description: error instanceof Error ? error.message : '바이어 생성 중 오류가 발생했습니다.',
         variant: 'destructive',
       })
     }
@@ -121,7 +159,19 @@ export default function AdminBuyersPage() {
     if (!selectedBuyer) return
 
     try {
-      await mockApi.buyers.update(selectedBuyer.id, buyerData)
+      const response = await fetch(`/api/admin/users/${selectedBuyer.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(buyerData)
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || '바이어 정보 수정에 실패했습니다')
+      }
+
       toast({
         title: '바이어 정보 수정',
         description: '바이어 정보가 성공적으로 수정되었습니다.',
@@ -132,7 +182,7 @@ export default function AdminBuyersPage() {
     } catch (error) {
       toast({
         title: '수정 실패',
-        description: '바이어 정보 수정 중 오류가 발생했습니다.',
+        description: error instanceof Error ? error.message : '바이어 정보 수정 중 오류가 발생했습니다.',
         variant: 'destructive',
       })
     }
@@ -142,7 +192,15 @@ export default function AdminBuyersPage() {
     if (!confirm(`${buyer.name} 바이어를 삭제하시겠습니까?`)) return
 
     try {
-      await mockApi.buyers.delete(buyer.id)
+      const response = await fetch(`/api/admin/users/${buyer.id}`, {
+        method: 'DELETE'
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || '바이어 삭제에 실패했습니다')
+      }
+
       toast({
         title: '바이어 삭제',
         description: `${buyer.name} 바이어가 삭제되었습니다.`,
@@ -151,7 +209,7 @@ export default function AdminBuyersPage() {
     } catch (error) {
       toast({
         title: '삭제 실패',
-        description: '바이어 삭제 중 오류가 발생했습니다.',
+        description: error instanceof Error ? error.message : '바이어 삭제 중 오류가 발생했습니다.',
         variant: 'destructive',
       })
     }
@@ -159,7 +217,6 @@ export default function AdminBuyersPage() {
 
   if (loading) {
     return (
-      <AdminGuard>
         <div className="min-h-screen bg-gray-50">
           <AdminHeader />
           <div className="container mx-auto px-4 py-8">
@@ -169,12 +226,10 @@ export default function AdminBuyersPage() {
             </div>
           </div>
         </div>
-      </AdminGuard>
     )
   }
 
   return (
-    <AdminGuard>
       <div className="min-h-screen bg-gray-50">
         <AdminHeader />
 
@@ -231,7 +286,7 @@ export default function AdminBuyersPage() {
                     </DialogDescription>
                   </DialogHeader>
                   <ExcelUpload
-                    type="buyers"
+                    type="BUYER"
                     onUploadComplete={() => {
                       setIsUploadDialogOpen(false)
                       fetchBuyers()
@@ -256,7 +311,7 @@ export default function AdminBuyersPage() {
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                     <Input
-                      placeholder="바이어명, 이메일 또는 회사명으로 검색..."
+                      placeholder="바이어명, 이메일 또는 소개로 검색..."
                       value={searchTerm}
                       onChange={e => setSearchTerm(e.target.value)}
                       className="pl-10"
@@ -283,12 +338,12 @@ export default function AdminBuyersPage() {
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">기업 소속</CardTitle>
+                <CardTitle className="text-sm font-medium">활성 바이어</CardTitle>
                 <User className="h-4 w-4 text-blue-600" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-blue-600">
-                  {buyers.filter(b => b.company_name).length}
+                  {buyers.filter(b => b._count && b._count.buyerMeetings > 0).length}
                 </div>
               </CardContent>
             </Card>
@@ -318,7 +373,7 @@ export default function AdminBuyersPage() {
               {filteredBuyers.length === 0 ? (
                 <div className="text-center py-12">
                   <p className="text-gray-500 text-lg">
-                    검색 조건에 맞는 바이어가 없습니다.
+                    {searchTerm ? '검색 조건에 맞는 바이어가 없습니다.' : '등록된 바이어가 없습니다.'}
                   </p>
                 </div>
               ) : (
@@ -338,19 +393,22 @@ export default function AdminBuyersPage() {
                             <h3 className="font-semibold text-lg">
                               {buyer.name}
                             </h3>
-                            {buyer.position && (
-                              <Badge variant="outline" className="text-xs">
-                                {buyer.position}
-                              </Badge>
-                            )}
+                            <Badge variant="outline" className="text-xs">
+                              바이어
+                            </Badge>
                           </div>
                           <p className="text-sm text-gray-600">{buyer.email}</p>
                           <div className="flex items-center gap-4 text-sm text-gray-500 mt-1">
-                            {buyer.phone && <span>📞 {buyer.phone}</span>}
-                            {buyer.company_name && (
-                              <span>🏢 {buyer.company_name}</span>
+                            {buyer.website && (
+                              <span>🌐 <a href={buyer.website} target="_blank" rel="noopener noreferrer" className="hover:text-blue-600">{buyer.website}</a></span>
+                            )}
+                            {buyer._count && (
+                              <span>📅 미팅 {buyer._count.buyerMeetings}건</span>
                             )}
                           </div>
+                          {buyer.description && (
+                            <p className="text-sm text-gray-600 mt-1">{buyer.description}</p>
+                          )}
                         </div>
                       </div>
 
@@ -412,7 +470,6 @@ export default function AdminBuyersPage() {
           </Dialog>
         </div>
       </div>
-    </AdminGuard>
   )
 }
 
@@ -428,15 +485,20 @@ function BuyerForm({
   const [formData, setFormData] = useState({
     name: buyer?.name || '',
     email: buyer?.email || '',
-    password: buyer?.password || '',
-    phone: buyer?.phone || '',
-    company_name: buyer?.company_name || '',
-    position: buyer?.position || '',
+    password: '', // 수정 시에는 비밀번호 변경할 때만 입력
+    website: buyer?.website || '',
+    description: buyer?.description || '',
   })
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    onSave(formData)
+    
+    // 비밀번호가 비어있으면 제외 (수정 시)
+    const submitData = buyer && !formData.password 
+      ? { ...formData, password: undefined }
+      : formData
+      
+    onSave(submitData)
   }
 
   return (
@@ -469,7 +531,9 @@ function BuyerForm({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="password">비밀번호 *</Label>
+        <Label htmlFor="password">
+          비밀번호 {buyer ? '(변경할 때만 입력)' : '*'}
+        </Label>
         <Input
           id="password"
           type="password"
@@ -477,42 +541,33 @@ function BuyerForm({
           onChange={e =>
             setFormData(prev => ({ ...prev, password: e.target.value }))
           }
-          required
+          required={!buyer}
+          placeholder={buyer ? '변경하려면 새 비밀번호 입력' : ''}
         />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="phone">전화번호</Label>
-          <Input
-            id="phone"
-            value={formData.phone}
-            onChange={e =>
-              setFormData(prev => ({ ...prev, phone: e.target.value }))
-            }
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="position">직책</Label>
-          <Input
-            id="position"
-            value={formData.position}
-            onChange={e =>
-              setFormData(prev => ({ ...prev, position: e.target.value }))
-            }
-          />
-        </div>
+      <div className="space-y-2">
+        <Label htmlFor="website">웹사이트</Label>
+        <Input
+          id="website"
+          type="url"
+          value={formData.website}
+          onChange={e =>
+            setFormData(prev => ({ ...prev, website: e.target.value }))
+          }
+          placeholder="https://example.com"
+        />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="company_name">회사명</Label>
+        <Label htmlFor="description">소개</Label>
         <Input
-          id="company_name"
-          value={formData.company_name}
+          id="description"
+          value={formData.description}
           onChange={e =>
-            setFormData(prev => ({ ...prev, company_name: e.target.value }))
+            setFormData(prev => ({ ...prev, description: e.target.value }))
           }
+          placeholder="바이어 소개를 입력하세요"
         />
       </div>
 

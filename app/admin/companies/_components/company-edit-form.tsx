@@ -7,11 +7,18 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 
-import type { Company } from '@/lib/supabase/mock-api'
+interface CompanyDataType {
+  name: string
+  email: string
+  password: string
+  role: 'COMPANY'
+  description?: string
+  website?: string
+}
 
 interface CompanyEditFormProps {
-  company: Company
-  onSave: (data: Partial<Company>) => Promise<void>
+  company: CompanyDataType
+  onSave: (data: Partial<CompanyDataType>) => Promise<void>
   onCancel: () => void
 }
 
@@ -24,10 +31,7 @@ export function CompanyEditForm({
     name: company.name,
     email: company.email,
     description: company.description || '',
-    website_url: company.website_url || '',
-    industry: company.industry || '',
-    location: company.location || '',
-    is_active: company.is_active,
+    website: company.website || '',
   })
 
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -39,13 +43,13 @@ export function CompanyEditForm({
     try {
       const updatedData = {
         ...formData,
-        description: formData.description || null,
-        website_url: formData.website_url || null,
-        industry: formData.industry || null,
-        location: formData.location || null,
+        description: formData.description.trim() || undefined,
+        website: formData.website.trim() || undefined,
       }
 
       await onSave(updatedData)
+    } catch (error) {
+      console.error('회사 수정 실패:', error)
     } finally {
       setIsSubmitting(false)
     }
@@ -97,7 +101,7 @@ export function CompanyEditForm({
         <Input
           id="website_url"
           type="url"
-          value={formData.website_url}
+          value={formData.website}
           onChange={e =>
             setFormData(prev => ({ ...prev, website_url: e.target.value }))
           }

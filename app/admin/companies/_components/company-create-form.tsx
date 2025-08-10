@@ -5,54 +5,19 @@ import React, { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 
-import type { Company } from '@/lib/supabase/mock-api'
-
-const INDUSTRIES = [
-  'IT/소프트웨어',
-  '제조업',
-  '금융',
-  '의료/헬스케어',
-  '교육',
-  '유통/소매',
-  '건설/부동산',
-  '운송/물류',
-  '미디어/광고',
-  '기타',
-]
-
-const LOCATIONS = [
-  '서울',
-  '부산',
-  '대구',
-  '인천',
-  '광주',
-  '대전',
-  '울산',
-  '세종',
-  '경기',
-  '강원',
-  '충북',
-  '충남',
-  '전북',
-  '전남',
-  '경북',
-  '경남',
-  '제주',
-  '해외',
-]
+interface CompanyDataType {
+  name: string
+  email: string
+  password: string
+  role: 'COMPANY'
+  description?: string
+  website?: string
+}
 
 interface CompanyCreateFormProps {
-  onSave: (data: Omit<Company, 'id' | 'created_at'>) => Promise<void>
+  onSave: (data: CompanyDataType) => Promise<void>
   onCancel: () => void
 }
 
@@ -65,10 +30,7 @@ export function CompanyCreateForm({
     email: '',
     password: '',
     description: '',
-    website_url: '',
-    industry: '',
-    location: '',
-    is_active: true,
+    website: '',
   })
 
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -78,19 +40,19 @@ export function CompanyCreateForm({
     setIsSubmitting(true)
 
     try {
-      const cleanedData = {
-        ...formData,
-        description: formData.description || null,
-        website_url: formData.website_url || null,
-        industry: formData.industry || null,
-        location: formData.location || null,
-        password_hash: formData.password || null,
-        logo_url: null,
-        available_times: {},
-        settings: { email_notifications: true },
+      // ImpacMatching API 형식에 맞게 데이터 구성
+      const apiData: CompanyDataType = {
+        name: formData.name.trim(),
+        email: formData.email.trim().toLowerCase(),
+        password: formData.password,
+        role: 'COMPANY',
+        description: formData.description.trim() || undefined,
+        website: formData.website.trim() || undefined,
       }
 
-      await onSave(cleanedData)
+      await onSave(apiData)
+    } catch (error) {
+      console.error('회사 생성 실패:', error)
     } finally {
       setIsSubmitting(false)
     }
@@ -108,11 +70,12 @@ export function CompanyCreateForm({
               setFormData(prev => ({ ...prev, name: e.target.value }))
             }
             required
+            placeholder="기업명을 입력하세요"
           />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="email">이메일 *</Label>
+          <Label htmlFor="email">기업 이메일 *</Label>
           <Input
             id="email"
             type="email"
@@ -121,12 +84,13 @@ export function CompanyCreateForm({
               setFormData(prev => ({ ...prev, email: e.target.value }))
             }
             required
+            placeholder="contact@company.com"
           />
         </div>
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="password">임시 비밀번호 *</Label>
+        <Label htmlFor="password">비밀번호 *</Label>
         <Input
           id="password"
           type="password"
@@ -135,7 +99,8 @@ export function CompanyCreateForm({
             setFormData(prev => ({ ...prev, password: e.target.value }))
           }
           required
-          placeholder="기업에서 사용할 임시 비밀번호를 입력하세요"
+          placeholder="기업에서 사용할 비밀번호를 입력하세요"
+          minLength={6}
         />
       </div>
 
@@ -152,74 +117,20 @@ export function CompanyCreateForm({
         />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="industry">업종</Label>
-          <Select
-            value={formData.industry}
-            onValueChange={value =>
-              setFormData(prev => ({ ...prev, industry: value }))
-            }
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="업종 선택" />
-            </SelectTrigger>
-            <SelectContent>
-              {INDUSTRIES.map(industry => (
-                <SelectItem key={industry} value={industry}>
-                  {industry}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="location">지역</Label>
-          <Select
-            value={formData.location}
-            onValueChange={value =>
-              setFormData(prev => ({ ...prev, location: value }))
-            }
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="지역 선택" />
-            </SelectTrigger>
-            <SelectContent>
-              {LOCATIONS.map(location => (
-                <SelectItem key={location} value={location}>
-                  {location}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
       <div className="space-y-2">
-        <Label htmlFor="website_url">웹사이트 URL</Label>
+        <Label htmlFor="website">웹사이트 URL</Label>
         <Input
-          id="website_url"
+          id="website"
           type="url"
-          value={formData.website_url}
+          value={formData.website}
           onChange={e =>
-            setFormData(prev => ({ ...prev, website_url: e.target.value }))
+            setFormData(prev => ({ ...prev, website: e.target.value }))
           }
-          placeholder="https://example.com"
+          placeholder="https://company.com 또는 company.com"
         />
-      </div>
-
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <Switch
-            id="is_active"
-            checked={formData.is_active}
-            onCheckedChange={checked =>
-              setFormData(prev => ({ ...prev, is_active: checked }))
-            }
-          />
-          <Label htmlFor="is_active">생성 후 즉시 활성화</Label>
-        </div>
+        <p className="text-sm text-gray-500">
+          http:// 또는 https://가 없으면 자동으로 https://가 추가됩니다.
+        </p>
       </div>
 
       <div className="flex justify-end space-x-2 pt-4">

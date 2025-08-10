@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
 import { useAuthStore } from '@/store/auth-store'
-import { Shield, LogOut, BarChart3, Users, Calendar } from 'lucide-react'
+import { Shield, LogOut, BarChart3, Users, Calendar, User } from 'lucide-react'
 
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
@@ -15,15 +15,51 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { useState } from 'react'
+import { signOut, useSession } from 'next-auth/react'
+import { useToast } from '@/hooks/use-toast'
 
 export function AdminHeader() {
-  const { user, logout } = useAuthStore()
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const { data: session, status } = useSession()
   const router = useRouter()
+  const { toast } = useToast()
 
-  const handleLogout = () => {
-    logout()
-    router.push('/admin/login')
+  const handleSignOut = async () => {
+    try {
+      await signOut({ redirect: false })
+      router.push('/')
+      toast({
+        title: '로그아웃 완료',
+        description: '성공적으로 로그아웃되었습니다.',
+      })
+    } catch (error) {
+      toast({
+        title: '로그아웃 오류',
+        description: '로그아웃 중 오류가 발생했습니다.',
+        variant: 'destructive',
+      })
+    }
   }
+
+  const getDashboardLink = () => {
+    if (!session?.user) return '/'
+
+    const userRole = (session.user as any).role
+
+    switch (userRole) {
+      case 'COMPANY':
+        return '/dashboard/company'
+      case 'BUYER':
+        return '/dashboard/buyer'
+      case 'ADMIN':
+        return '/admin/dashboard'
+      default:
+        return '/'
+    }
+  }
+
+  const user = session?.user
 
   return (
     <header className="border-b bg-white">
@@ -67,44 +103,29 @@ export function AdminHeader() {
         </nav>
 
         <div className="flex items-center space-x-4">
-          {user && user.role === 'admin' ? (
+          {status === 'loading' ? (
+            <div className="flex items-center space-x-2">
+              <div className="w-6 h-6 border-2 border-gray-300 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+          ) : user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="ghost"
-                  className="relative h-8 w-8 rounded-full"
+                  className="flex items-center space-x-2"
                 >
-                  <Avatar className="h-8 w-8">
-                    <AvatarFallback>
-                      {user.name.charAt(0).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
+                  <User className="h-4 w-4" />
+                  <span>{user.name}</span>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent
-                className="w-56 bg-white"
-                align="end"
-                forceMount
-              >
-                <div className="flex items-center justify-start gap-2 p-2">
-                  <div className="flex flex-col space-y-1 leading-none">
-                    <p className="font-medium">{user.name}</p>
-                    <p className="w-[200px] truncate text-sm text-muted-foreground">
-                      {user.email}
-                    </p>
-                  </div>
-                </div>
-                <DropdownMenuSeparator />
+              <DropdownMenuContent align="end" className="bg-white w-48">
                 <DropdownMenuItem asChild>
-                  <Link href="/admin/dashboard">
-                    <BarChart3 className="mr-2 h-4 w-4" />
+                  <Link
+                    href={getDashboardLink()}
+                    className="flex items-center"
+                  >
+                    <User className="mr-2 h-4 w-4" />
                     대시보드
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/admin/companies">
-                    <Users className="mr-2 h-4 w-4" />
-                    기업 관리
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
@@ -120,16 +141,26 @@ export function AdminHeader() {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout}>
+                <DropdownMenuItem onClick={handleSignOut}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  로그아웃
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={handleSignOut}
+                  className="text-red-600"
+                >
                   <LogOut className="mr-2 h-4 w-4" />
                   로그아웃
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <Button asChild>
-              <Link href="/admin/login">로그인</Link>
-            </Button>
+            <div className="flex items-center space-x-4">
+              <Link href="/login">
+                <Button variant="ghost">로그인</Button>
+              </Link>
+            </div>
           )}
         </div>
       </div>

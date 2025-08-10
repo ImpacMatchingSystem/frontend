@@ -2,11 +2,10 @@
 
 import { useParams, useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
+import { useSession } from 'next-auth/react'
 
-import { useAuthStore } from '@/store/auth-store'
-import { Calendar, Clock, ArrowLeft, Send } from 'lucide-react'
+import { Calendar, Clock, ArrowLeft, Send, Globe, Building2 } from 'lucide-react'
 
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -19,44 +18,61 @@ import { Textarea } from '@/components/ui/textarea'
 
 import { useToast } from '@/hooks/use-toast'
 
-import { mockApi } from '@/lib/supabase/mock-api'
-import type { Company } from '@/lib/supabase/mock-data'
+interface Company {
+  id: string
+  name: string
+  email: string
+  description?: string | null
+  website?: string | null
+  timeSlots: Array<{
+    id: string
+    startTime: string
+    endTime: string
+    isBooked: boolean
+  }>
+}
 
 export default function MeetingRequestPage() {
   const params = useParams()
   const router = useRouter()
+  const { data: session } = useSession()
   const { toast } = useToast()
-  const { user } = useAuthStore()
 
   const [company, setCompany] = useState<Company | null>(null)
-  const [selectedDate, setSelectedDate] = useState<string>('')
-  const [selectedTime, setSelectedTime] = useState<string>('')
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState<string>('')
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
 
   // 바이어만 접근 가능
   useEffect(() => {
-    if (!user || user.role !== 'buyer') {
+    if (!session?.user || (session.user as any).role !== 'BUYER') {
       router.push('/login')
       return
     }
-  }, [user, router])
+  }, [session, router])
 
-  // 기업 정보 로드
+  // 기업 정보 및 시간대 로드
   useEffect(() => {
     const loadCompany = async () => {
       try {
-        const companyData = await mockApi.companies.getById(params.id as string)
-        if (!companyData) {
-          toast({
-            title: '오류',
-            description: '기업 정보를 찾을 수 없습니다.',
-            variant: 'destructive',
-          })
+        const response = await fetch(`/api/companies/${params.id}`)
+        
+        if (!response.ok) {
+          if (response.status === 404) {
+            toast({
+              title: '오류',
+              description: '기업 정보를 찾을 수 없습니다.',
+              variant: 'destructive',
+            })
+          } else {
+            throw new Error(`HTTP ${response.status}`)
+          }
           router.push('/dashboard/buyer/companies')
           return
         }
+
+        const companyData = await response.json()
         setCompany(companyData)
       } catch (error) {
         console.error('Failed to load company:', error)
@@ -65,6 +81,7 @@ export default function MeetingRequestPage() {
           description: '기업 정보를 불러오는데 실패했습니다.',
           variant: 'destructive',
         })
+        router.push('/dashboard/buyer/companies')
       } finally {
         setLoading(false)
       }
@@ -75,56 +92,44 @@ export default function MeetingRequestPage() {
     }
   }, [params.id, router, toast])
 
-  // 날짜 생성 (오늘부터 14일)
-  const generateDates = () => {
-    const dates = []
-    const today = new Date()
-
-    for (let i = 0; i < 14; i++) {
-      const date = new Date(today)
-      date.setDate(today.getDate() + i)
-      dates.push(date.toISOString().split('T')[0])
-    }
-
-    return dates
-  }
-
-  // 시간 슬롯 생성
-  const generateTimeSlots = (duration = 30) => {
-    const slots = []
-    const startHour = 9
-    const endHour = 18
-
-    for (let hour = startHour; hour < endHour; hour++) {
-      for (let minute = 0; minute < 60; minute += duration) {
-        const time = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`
-        slots.push(time)
-      }
-    }
-
-    return slots
-  }
-
-  // 해당 날짜에 사용 가능한 시간인지 확인
-  const isTimeAvailable = (date: string, time: string) => {
-    if (!company?.available_times || !company.available_times[date]) {
-      return false
-    }
-    return company.available_times[date].includes(time)
+  // 날짜별로 시간대 그룹화
+  const groupTimeSlotsByDate = () => {
+    if (!company?.timeSlots) return {}
+    
+    const groups: { [date: string]: typeof company.timeSlots } = {}
+    
+    company.timeSlots
+      .filter(slot => !slot.isBooked && new Date(slot.startTime) > new Date())
+      .forEach(slot => {
+        const date = new Date(slot.startTime).toDateString()
+        if (!groups[date]) {
+          groups[date] = []
+        }
+        groups[date].push(slot)
+      })
+    
+    // 각 날짜의 시간대를 시간순으로 정렬
+    Object.keys(groups).forEach(date => {
+      groups[date].sort((a, b) => 
+        new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
+      )
+    })
+    
+    return groups
   }
 
   // 미팅 요청 제출
   const handleSubmit = async () => {
-    if (!selectedDate || !selectedTime) {
+    if (!selectedTimeSlot) {
       toast({
         title: '입력 오류',
-        description: '날짜와 시간을 선택해주세요.',
+        description: '시간대를 선택해주세요.',
         variant: 'destructive',
       })
       return
     }
 
-    if (!user) {
+    if (!session?.user) {
       toast({
         title: '인증 오류',
         description: '로그인이 필요합니다.',
@@ -136,19 +141,21 @@ export default function MeetingRequestPage() {
     setSubmitting(true)
 
     try {
-      const meetingTime = new Date(`${selectedDate}T${selectedTime}:00`)
-      const endTime = new Date(meetingTime.getTime() + 30 * 60 * 1000) // 30분 후
-
-      await mockApi.meetings.create({
-        company_id: params.id as string,
-        buyer_id: user.id,
-        meeting_time: meetingTime.toISOString(),
-        end_time: endTime.toISOString(),
-        status: 'pending',
-        buyer_message: message || null,
-        company_response: null,
-        rejection_reason: null,
+      const response = await fetch('/api/meetings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          timeSlotId: selectedTimeSlot,
+          message: message || null,
+        }),
       })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || '미팅 요청에 실패했습니다')
+      }
 
       toast({
         title: '미팅 요청 완료',
@@ -160,7 +167,7 @@ export default function MeetingRequestPage() {
       console.error('Failed to create meeting:', error)
       toast({
         title: '오류',
-        description: '미팅 요청 중 오류가 발생했습니다.',
+        description: error instanceof Error ? error.message : '미팅 요청 중 오류가 발생했습니다.',
         variant: 'destructive',
       })
     } finally {
@@ -173,7 +180,7 @@ export default function MeetingRequestPage() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-gray-600">로딩 중...</p>
+          <p className="mt-4 text-gray-600">기업 정보를 불러오는 중...</p>
         </div>
       </div>
     )
@@ -189,8 +196,8 @@ export default function MeetingRequestPage() {
     )
   }
 
-  const dates = generateDates()
-  const timeSlots = generateTimeSlots(30) // 30분 간격
+  const timeSlotGroups = groupTimeSlotsByDate()
+  const selectedSlot = company.timeSlots.find(slot => slot.id === selectedTimeSlot)
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -207,20 +214,15 @@ export default function MeetingRequestPage() {
           </Button>
 
           <div className="flex items-center space-x-4">
-            <img
-              src={
-                company.logo_url ||
-                '/placeholder.svg?height=64&width=64&text=Logo'
-              }
-              alt={company.name}
-              className="w-16 h-16 rounded-lg object-cover"
-            />
+            <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center">
+              <Building2 className="h-8 w-8 text-gray-600" />
+            </div>
             <div>
               <h1 className="text-3xl font-bold text-gray-900">
                 {company.name}
               </h1>
               <p className="text-gray-600 mt-1">
-                {company.industry} • {company.location}
+                미팅을 요청하여 비즈니스 기회를 만들어보세요
               </p>
             </div>
           </div>
@@ -234,32 +236,42 @@ export default function MeetingRequestPage() {
                 <CardTitle>기업 정보</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div>
-                  <h4 className="font-medium text-gray-900">회사 소개</h4>
-                  <p className="text-sm text-gray-600 mt-1">
-                    {company.description}
-                  </p>
-                </div>
-
-                {company.website_url && (
+                {company.description && (
                   <div>
-                    <h4 className="font-medium text-gray-900">웹사이트</h4>
+                    <h4 className="font-medium text-gray-900">회사 소개</h4>
+                    <p className="text-sm text-gray-600 mt-1">
+                      {company.description}
+                    </p>
+                  </div>
+                )}
+
+                {company.website && (
+                  <div>
+                    <h4 className="font-medium text-gray-900 flex items-center gap-2">
+                      <Globe className="h-4 w-4" />
+                      웹사이트
+                    </h4>
                     <a
-                      href={company.website_url}
+                      href={company.website}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-sm text-primary hover:underline mt-1 block"
                     >
-                      {company.website_url}
+                      {company.website}
                     </a>
                   </div>
                 )}
 
                 <div>
-                  <h4 className="font-medium text-gray-900">업종</h4>
-                  <Badge variant="secondary" className="mt-1">
-                    {company.industry}
-                  </Badge>
+                  <h4 className="font-medium text-gray-900">이메일</h4>
+                  <p className="text-sm text-gray-600 mt-1">{company.email}</p>
+                </div>
+
+                <div>
+                  <h4 className="font-medium text-gray-900">사용 가능한 시간대</h4>
+                  <p className="text-sm text-gray-600 mt-1">
+                    {company.timeSlots.filter(slot => !slot.isBooked).length}개 시간대 예약 가능
+                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -278,97 +290,58 @@ export default function MeetingRequestPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                {/* 날짜 선택 */}
-                <div>
-                  <h4 className="font-medium text-gray-900 mb-3">날짜 선택</h4>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-                    {dates.map(date => {
-                      const dateObj = new Date(date)
-                      const hasAvailableSlots =
-                        company.available_times &&
-                        company.available_times[date] &&
-                        company.available_times[date].length > 0
-
-                      return (
-                        <Button
-                          key={date}
-                          variant={
-                            selectedDate === date ? 'default' : 'outline'
-                          }
-                          className={`p-3 h-auto flex flex-col ${
-                            !hasAvailableSlots
-                              ? 'opacity-50 cursor-not-allowed'
-                              : ''
-                          }`}
-                          onClick={() => {
-                            if (hasAvailableSlots) {
-                              setSelectedDate(date)
-                              setSelectedTime('') // 날짜 변경 시 시간 초기화
-                            }
-                          }}
-                          disabled={!hasAvailableSlots}
-                        >
-                          <span className="text-xs">
-                            {dateObj.toLocaleDateString('ko-KR', {
-                              weekday: 'short',
-                            })}
-                          </span>
-                          <span className="text-sm font-medium">
-                            {dateObj.getDate()}
-                          </span>
-                        </Button>
-                      )
-                    })}
+                {/* 사용 가능한 시간대 */}
+                {Object.keys(timeSlotGroups).length === 0 ? (
+                  <div className="text-center py-8">
+                    <Calendar className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                    <p className="text-gray-500">
+                      현재 예약 가능한 시간대가 없습니다.
+                    </p>
+                    <p className="text-sm text-gray-400 mt-1">
+                      나중에 다시 확인해주세요.
+                    </p>
                   </div>
-                </div>
-
-                {/* 시간 선택 */}
-                {selectedDate && (
-                  <div>
-                    <h4 className="font-medium text-gray-900 mb-3 flex items-center">
+                ) : (
+                  <div className="space-y-4">
+                    <h4 className="font-medium text-gray-900 flex items-center">
                       <Clock className="mr-2 h-4 w-4" />
-                      시간 선택
+                      시간대 선택
                     </h4>
-                    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
-                      {timeSlots.map(time => {
-                        const isAvailable = isTimeAvailable(selectedDate, time)
-
-                        return (
-                          <Button
-                            key={time}
-                            variant={
-                              selectedTime === time ? 'default' : 'outline'
-                            }
-                            size="sm"
-                            className={`${!isAvailable ? 'opacity-50 cursor-not-allowed' : ''}`}
-                            onClick={() => {
-                              if (isAvailable) {
-                                setSelectedTime(time)
-                              }
-                            }}
-                            disabled={!isAvailable}
-                          >
-                            {time}
-                          </Button>
-                        )
-                      })}
-                    </div>
-
-                    {/* 범례 */}
-                    <div className="mt-4 flex flex-wrap gap-4 text-sm">
-                      <div className="flex items-center">
-                        <div className="w-3 h-3 bg-primary rounded mr-2"></div>
-                        <span>선택됨</span>
-                      </div>
-                      <div className="flex items-center">
-                        <div className="w-3 h-3 border border-gray-300 rounded mr-2"></div>
-                        <span>선택 가능</span>
-                      </div>
-                      <div className="flex items-center">
-                        <div className="w-3 h-3 bg-gray-300 rounded mr-2"></div>
-                        <span>선택 불가</span>
-                      </div>
-                    </div>
+                    
+                    {Object.entries(timeSlotGroups)
+                      .sort(([a], [b]) => new Date(a).getTime() - new Date(b).getTime())
+                      .map(([date, slots]) => (
+                        <div key={date} className="space-y-2">
+                          <h5 className="font-medium text-gray-800">
+                            {new Date(date).toLocaleDateString('ko-KR', {
+                              month: 'long',
+                              day: 'numeric',
+                              weekday: 'long',
+                            })}
+                          </h5>
+                          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                            {slots.map(slot => (
+                              <Button
+                                key={slot.id}
+                                variant={selectedTimeSlot === slot.id ? 'default' : 'outline'}
+                                size="sm"
+                                className="h-auto p-2 flex flex-col"
+                                onClick={() => setSelectedTimeSlot(slot.id)}
+                              >
+                                <span className="text-xs">
+                                  {new Date(slot.startTime).toLocaleTimeString('ko-KR', {
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                  })}
+                                </span>
+                                <span className="text-xs text-gray-500">
+                                  30분
+                                </span>
+                              </Button>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
                   </div>
                 )}
 
@@ -386,7 +359,7 @@ export default function MeetingRequestPage() {
                 </div>
 
                 {/* 선택된 정보 요약 */}
-                {selectedDate && selectedTime && (
+                {selectedSlot && (
                   <div className="bg-blue-50 p-4 rounded-lg">
                     <h4 className="font-medium text-gray-900 mb-2">
                       선택된 미팅 정보
@@ -394,15 +367,22 @@ export default function MeetingRequestPage() {
                     <div className="space-y-1 text-sm text-gray-600">
                       <p>• 기업: {company.name}</p>
                       <p>
-                        • 날짜:{' '}
-                        {new Date(selectedDate).toLocaleDateString('ko-KR', {
+                        • 날짜: {new Date(selectedSlot.startTime).toLocaleDateString('ko-KR', {
                           year: 'numeric',
                           month: 'long',
                           day: 'numeric',
                           weekday: 'long',
                         })}
                       </p>
-                      <p>• 시간: {selectedTime} (30분)</p>
+                      <p>
+                        • 시간: {new Date(selectedSlot.startTime).toLocaleTimeString('ko-KR', {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })} - {new Date(selectedSlot.endTime).toLocaleTimeString('ko-KR', {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </p>
                     </div>
                   </div>
                 )}
@@ -410,7 +390,7 @@ export default function MeetingRequestPage() {
                 {/* 제출 버튼 */}
                 <Button
                   onClick={handleSubmit}
-                  disabled={!selectedDate || !selectedTime || submitting}
+                  disabled={!selectedTimeSlot || submitting || Object.keys(timeSlotGroups).length === 0}
                   className="w-full"
                   size="lg"
                 >

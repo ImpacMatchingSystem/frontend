@@ -1,19 +1,19 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useSession } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
 
-import { useAuthStore } from '@/store/auth-store'
 import {
   Calendar,
   Clock,
   User,
   Mail,
-  Phone,
-  Building,
   MessageSquare,
   Check,
   X,
   Filter,
+  Eye,
 } from 'lucide-react'
 
 import { Header } from '@/components/layout/header'
@@ -37,53 +37,85 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Textarea } from '@/components/ui/textarea'
 
 import { useToast } from '@/hooks/use-toast'
 
-import { mockApi, type Meeting, type Buyer } from '@/lib/supabase/mock-api'
-
-interface MeetingWithBuyer extends Meeting {
-  buyer: Buyer
+interface MeetingWithDetails {
+  id: string
+  status: 'PENDING' | 'CONFIRMED' | 'REJECTED' | 'CANCELLED'
+  message?: string
+  createdAt: string
+  updatedAt: string
+  company: {
+    id: string
+    name: string
+    email: string
+  }
+  buyer: {
+    id: string
+    name: string
+    email: string
+    description?: string
+    website?: string
+  }
+  timeSlot: {
+    id: string
+    startTime: string
+    endTime: string
+  }
 }
 
 export default function CompanyMeetingsPage() {
-  const [meetings, setMeetings] = useState<MeetingWithBuyer[]>([])
+  const { data: session, status } = useSession()
+  const router = useRouter()
+  const [meetings, setMeetings] = useState<MeetingWithDetails[]>([])
   const [loading, setLoading] = useState(true)
-  const [selectedMeeting, setSelectedMeeting] =
-    useState<MeetingWithBuyer | null>(null)
-  const [responseMessage, setResponseMessage] = useState('')
-  const [rejectionReason, setRejectionReason] = useState('')
+  const [selectedMeeting, setSelectedMeeting] = useState<MeetingWithDetails | null>(null)
   const [statusFilter, setStatusFilter] = useState('all')
 
-  const { user } = useAuthStore()
   const { toast } = useToast()
 
   useEffect(() => {
-    if (user) {
-      fetchMeetings()
+    if (status === 'loading') return
+
+    if (!session?.user) {
+      router.push('/login')
+      return
     }
-  }, [user])
+
+    if ((session.user as any).role !== 'COMPANY') {
+      toast({
+        title: '접근 권한 없음',
+        description: '기업만 접근할 수 있는 페이지입니다.',
+        variant: 'destructive',
+      })
+      router.push('/')
+      return
+    }
+
+    fetchMeetings()
+  }, [session, status, router])
 
   const fetchMeetings = async () => {
-    if (!user) return
+    if (!session?.user) return
 
     try {
-      const company = await mockApi.companies.getByEmail(user.email)
-      if (!company) return
+      const response = await fetch('/api/meetings')
+      
+      if (!response.ok) {
+        throw new Error('미팅 목록 조회 실패')
+      }
 
-      const meetingList = await mockApi.meetings.getByCompanyId(company.id)
-      const buyers = await mockApi.buyers.getAll()
+      const meetingsData = await response.json()
+      const sortedMeetings = Array.isArray(meetingsData) 
+        ? meetingsData.sort((a: any, b: any) => 
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          )
+        : []
 
-      const meetingsWithBuyers: MeetingWithBuyer[] = meetingList
-        .map(meeting => {
-          const buyer = buyers.find(b => b.id === meeting.buyer_id)
-          return { ...meeting, buyer: buyer! }
-        })
-        .filter(m => m.buyer)
-
-      setMeetings(meetingsWithBuyers)
+      setMeetings(sortedMeetings)
     } catch (error) {
+      console.error('Meetings fetch error:', error)
       toast({
         title: '데이터 로딩 오류',
         description: '미팅 목록을 불러오는데 실패했습니다.',
@@ -96,31 +128,30 @@ export default function CompanyMeetingsPage() {
 
   const handleMeetingAction = async (
     meetingId: string,
-    action: 'confirmed' | 'rejected'
+    action: 'CONFIRMED' | 'REJECTED'
   ) => {
     try {
-      const updateData: Partial<Meeting> = {
-        status: action,
-      }
+      const response = await fetch(`/api/meetings/${meetingId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status: action }),
+      })
 
-      if (action === 'confirmed' && responseMessage) {
-        updateData.company_response = responseMessage
-      } else if (action === 'rejected' && rejectionReason) {
-        updateData.rejection_reason = rejectionReason
+      if (!response.ok) {
+        throw new Error('미팅 상태 변경 실패')
       }
-
-      await mockApi.meetings.update(meetingId, updateData)
 
       toast({
-        title: action === 'confirmed' ? '미팅 승인' : '미팅 거절',
-        description: `미팅이 ${action === 'confirmed' ? '승인' : '거절'}되었습니다.`,
+        title: action === 'CONFIRMED' ? '미팅 승인' : '미팅 거절',
+        description: `미팅이 ${action === 'CONFIRMED' ? '승인' : '거절'}되었습니다.`,
       })
 
       setSelectedMeeting(null)
-      setResponseMessage('')
-      setRejectionReason('')
       fetchMeetings()
     } catch (error) {
+      console.error('Meeting action error:', error)
       toast({
         title: '오류',
         description: '미팅 상태 변경에 실패했습니다.',
@@ -131,35 +162,43 @@ export default function CompanyMeetingsPage() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'pending':
+      case 'PENDING':
         return (
-          <Badge
-            variant="outline"
-            className="text-yellow-600 border-yellow-600"
-          >
+          <Badge variant="outline" className="text-yellow-600 border-yellow-600">
             대기중
           </Badge>
         )
-      case 'confirmed':
+      case 'CONFIRMED':
         return (
           <Badge variant="outline" className="text-green-600 border-green-600">
             승인됨
           </Badge>
         )
-      case 'rejected':
+      case 'REJECTED':
         return (
           <Badge variant="outline" className="text-red-600 border-red-600">
             거절됨
           </Badge>
         )
-      case 'completed':
+      case 'CANCELLED':
         return (
-          <Badge variant="outline" className="text-blue-600 border-blue-600">
-            완료됨
+          <Badge variant="outline" className="text-gray-600 border-gray-600">
+            취소됨
           </Badge>
         )
       default:
         return <Badge variant="outline">{status}</Badge>
+    }
+  }
+
+  const formatDateTime = (dateString: string) => {
+    const date = new Date(dateString)
+    return {
+      date: date.toLocaleDateString('ko-KR'),
+      time: date.toLocaleTimeString('ko-KR', {
+        hour: '2-digit',
+        minute: '2-digit',
+      })
     }
   }
 
@@ -169,13 +208,13 @@ export default function CompanyMeetingsPage() {
   })
 
   const groupedMeetings = {
-    pending: filteredMeetings.filter(m => m.status === 'pending'),
-    confirmed: filteredMeetings.filter(m => m.status === 'confirmed'),
-    rejected: filteredMeetings.filter(m => m.status === 'rejected'),
-    completed: filteredMeetings.filter(m => m.status === 'completed'),
+    pending: filteredMeetings.filter(m => m.status === 'PENDING'),
+    confirmed: filteredMeetings.filter(m => m.status === 'CONFIRMED'),
+    rejected: filteredMeetings.filter(m => m.status === 'REJECTED'),
+    cancelled: filteredMeetings.filter(m => m.status === 'CANCELLED'),
   }
 
-  if (loading) {
+  if (status === 'loading' || loading) {
     return (
       <div className="min-h-screen bg-gray-50">
         <Header />
@@ -187,6 +226,10 @@ export default function CompanyMeetingsPage() {
         </div>
       </div>
     )
+  }
+
+  if (!session?.user || (session.user as any).role !== 'COMPANY') {
+    return null
   }
 
   return (
@@ -211,10 +254,10 @@ export default function CompanyMeetingsPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">전체</SelectItem>
-                <SelectItem value="pending">대기중</SelectItem>
-                <SelectItem value="confirmed">승인됨</SelectItem>
-                <SelectItem value="rejected">거절됨</SelectItem>
-                <SelectItem value="completed">완료됨</SelectItem>
+                <SelectItem value="PENDING">대기중</SelectItem>
+                <SelectItem value="CONFIRMED">승인됨</SelectItem>
+                <SelectItem value="REJECTED">거절됨</SelectItem>
+                <SelectItem value="CANCELLED">취소됨</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -234,8 +277,8 @@ export default function CompanyMeetingsPage() {
             <TabsTrigger value="rejected">
               거절됨 ({groupedMeetings.rejected.length})
             </TabsTrigger>
-            <TabsTrigger value="completed">
-              완료됨 ({groupedMeetings.completed.length})
+            <TabsTrigger value="cancelled">
+              취소됨 ({groupedMeetings.cancelled.length})
             </TabsTrigger>
           </TabsList>
 
@@ -271,9 +314,9 @@ export default function CompanyMeetingsPage() {
             />
           </TabsContent>
 
-          <TabsContent value="completed" className="mt-6">
+          <TabsContent value="cancelled" className="mt-6">
             <MeetingList
-              meetings={groupedMeetings.completed}
+              meetings={groupedMeetings.cancelled}
               onMeetingSelect={setSelectedMeeting}
               onMeetingAction={handleMeetingAction}
             />
@@ -310,18 +353,23 @@ export default function CompanyMeetingsPage() {
                         <Mail className="h-3 w-3" />
                         {selectedMeeting.buyer.email}
                       </p>
-                      {selectedMeeting.buyer.phone && (
-                        <p className="text-sm text-gray-600 flex items-center gap-1">
-                          <Phone className="h-3 w-3" />
-                          {selectedMeeting.buyer.phone}
+                      {selectedMeeting.buyer.description && (
+                        <p className="text-sm text-gray-600">
+                          {selectedMeeting.buyer.description}
                         </p>
                       )}
-                      {selectedMeeting.buyer.company_name && (
-                        <p className="text-sm text-gray-600 flex items-center gap-1">
-                          <Building className="h-3 w-3" />
-                          {selectedMeeting.buyer.company_name}
-                          {selectedMeeting.buyer.position &&
-                            ` (${selectedMeeting.buyer.position})`}
+                      {selectedMeeting.buyer.website && (
+                        <p className="text-sm text-blue-600">
+                          <a 
+                            href={selectedMeeting.buyer.website.startsWith('http') 
+                              ? selectedMeeting.buyer.website 
+                              : `https://${selectedMeeting.buyer.website}`
+                            }
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                          >
+                            {selectedMeeting.buyer.website}
+                          </a>
                         </p>
                       )}
                     </div>
@@ -334,31 +382,12 @@ export default function CompanyMeetingsPage() {
                     </Label>
                     <div className="p-3 bg-gray-50 rounded-lg space-y-1">
                       <p className="font-medium">
-                        {new Date(
-                          selectedMeeting.meeting_time
-                        ).toLocaleDateString('ko-KR', {
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric',
-                          weekday: 'long',
-                        })}
+                        {formatDateTime(selectedMeeting.timeSlot.startTime).date}
                       </p>
                       <p className="text-sm text-gray-600 flex items-center gap-1">
                         <Clock className="h-3 w-3" />
-                        {new Date(
-                          selectedMeeting.meeting_time
-                        ).toLocaleTimeString('ko-KR', {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}{' '}
-                        -{' '}
-                        {new Date(selectedMeeting.end_time).toLocaleTimeString(
-                          'ko-KR',
-                          {
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          }
-                        )}
+                        {formatDateTime(selectedMeeting.timeSlot.startTime).time} - 
+                        {formatDateTime(selectedMeeting.timeSlot.endTime).time}
                       </p>
                       <div className="pt-2">
                         {getStatusBadge(selectedMeeting.status)}
@@ -368,111 +397,40 @@ export default function CompanyMeetingsPage() {
                 </div>
 
                 {/* 바이어 메시지 */}
-                {selectedMeeting.buyer_message && (
+                {selectedMeeting.message && (
                   <div className="space-y-2">
                     <Label className="flex items-center gap-2">
                       <MessageSquare className="h-4 w-4" />
                       바이어 메시지
                     </Label>
                     <div className="p-3 bg-blue-50 rounded-lg">
-                      <p className="text-sm">{selectedMeeting.buyer_message}</p>
-                    </div>
-                  </div>
-                )}
-
-                {/* 기업 응답 */}
-                {selectedMeeting.company_response && (
-                  <div className="space-y-2">
-                    <Label>기업 응답</Label>
-                    <div className="p-3 bg-green-50 rounded-lg">
-                      <p className="text-sm">
-                        {selectedMeeting.company_response}
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                {/* 거절 사유 */}
-                {selectedMeeting.rejection_reason && (
-                  <div className="space-y-2">
-                    <Label>거절 사유</Label>
-                    <div className="p-3 bg-red-50 rounded-lg">
-                      <p className="text-sm">
-                        {selectedMeeting.rejection_reason}
-                      </p>
+                      <p className="text-sm">{selectedMeeting.message}</p>
                     </div>
                   </div>
                 )}
 
                 {/* 액션 버튼 */}
-                {selectedMeeting.status === 'pending' && (
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="response">승인 메시지 (선택사항)</Label>
-                      <Textarea
-                        id="response"
-                        placeholder="바이어에게 전달할 메시지를 입력하세요..."
-                        value={responseMessage}
-                        onChange={e => setResponseMessage(e.target.value)}
-                      />
-                    </div>
-
-                    <div className="flex gap-2">
-                      <Button
-                        onClick={() =>
-                          handleMeetingAction(selectedMeeting.id, 'confirmed')
-                        }
-                        className="flex-1"
-                      >
-                        <Check className="mr-2 h-4 w-4" />
-                        승인
-                      </Button>
-
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button
-                            variant="outline"
-                            className="flex-1 bg-transparent"
-                          >
-                            <X className="mr-2 h-4 w-4" />
-                            거절
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent>
-                          <DialogHeader>
-                            <DialogTitle>미팅 거절</DialogTitle>
-                            <DialogDescription>
-                              미팅을 거절하는 사유를 입력해주세요.
-                            </DialogDescription>
-                          </DialogHeader>
-                          <div className="space-y-4">
-                            <div className="space-y-2">
-                              <Label htmlFor="rejection">거절 사유</Label>
-                              <Textarea
-                                id="rejection"
-                                placeholder="거절 사유를 입력하세요..."
-                                value={rejectionReason}
-                                onChange={e =>
-                                  setRejectionReason(e.target.value)
-                                }
-                              />
-                            </div>
-                            <Button
-                              onClick={() =>
-                                handleMeetingAction(
-                                  selectedMeeting.id,
-                                  'rejected'
-                                )
-                              }
-                              variant="destructive"
-                              className="w-full"
-                            >
-                              거절하기
-                            </Button>
-                          </div>
-                        </DialogContent>
-                      </Dialog>
-                    </div>
+                {selectedMeeting.status === 'PENDING' && (
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={() =>
+                        handleMeetingAction(selectedMeeting.id, 'CONFIRMED')
+                      }
+                      className="flex-1"
+                    >
+                      <Check className="mr-2 h-4 w-4" />
+                      승인
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() =>
+                        handleMeetingAction(selectedMeeting.id, 'REJECTED')
+                      }
+                      className="flex-1"
+                    >
+                      <X className="mr-2 h-4 w-4" />
+                      거절
+                    </Button>
                   </div>
                 )}
               </div>
@@ -489,41 +447,49 @@ function MeetingList({
   onMeetingSelect,
   onMeetingAction,
 }: {
-  meetings: MeetingWithBuyer[]
-  onMeetingSelect: (meeting: MeetingWithBuyer) => void
-  onMeetingAction: (meetingId: string, action: 'confirmed' | 'rejected') => void
+  meetings: MeetingWithDetails[]
+  onMeetingSelect: (meeting: MeetingWithDetails) => void
+  onMeetingAction: (meetingId: string, action: 'CONFIRMED' | 'REJECTED') => void
 }) {
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'pending':
+      case 'PENDING':
         return (
-          <Badge
-            variant="outline"
-            className="text-yellow-600 border-yellow-600"
-          >
+          <Badge variant="outline" className="text-yellow-600 border-yellow-600">
             대기중
           </Badge>
         )
-      case 'confirmed':
+      case 'CONFIRMED':
         return (
           <Badge variant="outline" className="text-green-600 border-green-600">
             승인됨
           </Badge>
         )
-      case 'rejected':
+      case 'REJECTED':
         return (
           <Badge variant="outline" className="text-red-600 border-red-600">
             거절됨
           </Badge>
         )
-      case 'completed':
+      case 'CANCELLED':
         return (
-          <Badge variant="outline" className="text-blue-600 border-blue-600">
-            완료됨
+          <Badge variant="outline" className="text-gray-600 border-gray-600">
+            취소됨
           </Badge>
         )
       default:
         return <Badge variant="outline">{status}</Badge>
+    }
+  }
+
+  const formatDateTime = (dateString: string) => {
+    const date = new Date(dateString)
+    return {
+      date: date.toLocaleDateString('ko-KR'),
+      time: date.toLocaleTimeString('ko-KR', {
+        hour: '2-digit',
+        minute: '2-digit',
+      })
     }
   }
 
@@ -537,106 +503,90 @@ function MeetingList({
 
   return (
     <div className="space-y-4">
-      {meetings.map(meeting => (
-        <Card key={meeting.id} className="hover:shadow-md transition-shadow">
-          <CardContent className="p-6">
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <div className="flex items-center gap-3 mb-2">
-                  <h3 className="font-semibold text-lg">
-                    {meeting.buyer.name}
-                  </h3>
-                  {getStatusBadge(meeting.status)}
-                </div>
+      {meetings.map(meeting => {
+        const startDateTime = formatDateTime(meeting.timeSlot.startTime)
+        const endDateTime = formatDateTime(meeting.timeSlot.endTime)
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                  <div className="space-y-1">
-                    <p className="text-sm text-gray-600 flex items-center gap-1">
-                      <Mail className="h-3 w-3" />
-                      {meeting.buyer.email}
-                    </p>
-                    {meeting.buyer.phone && (
-                      <p className="text-sm text-gray-600 flex items-center gap-1">
-                        <Phone className="h-3 w-3" />
-                        {meeting.buyer.phone}
-                      </p>
-                    )}
-                    {meeting.buyer.company_name && (
-                      <p className="text-sm text-gray-600 flex items-center gap-1">
-                        <Building className="h-3 w-3" />
-                        {meeting.buyer.company_name}
-                        {meeting.buyer.position &&
-                          ` (${meeting.buyer.position})`}
-                      </p>
-                    )}
+        return (
+          <Card key={meeting.id} className="hover:shadow-md transition-shadow">
+            <CardContent className="p-6">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-2">
+                    <h3 className="font-semibold text-lg">
+                      {meeting.buyer.name}
+                    </h3>
+                    {getStatusBadge(meeting.status)}
                   </div>
 
-                  <div className="space-y-1">
-                    <p className="text-sm text-gray-600 flex items-center gap-1">
-                      <Calendar className="h-3 w-3" />
-                      {new Date(meeting.meeting_time).toLocaleDateString(
-                        'ko-KR'
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div className="space-y-1">
+                      <p className="text-sm text-gray-600 flex items-center gap-1">
+                        <Mail className="h-3 w-3" />
+                        {meeting.buyer.email}
+                      </p>
+                      {meeting.buyer.description && (
+                        <p className="text-sm text-gray-600">
+                          소개: {meeting.buyer.description}
+                        </p>
                       )}
-                    </p>
-                    <p className="text-sm text-gray-600 flex items-center gap-1">
-                      <Clock className="h-3 w-3" />
-                      {new Date(meeting.meeting_time).toLocaleTimeString(
-                        'ko-KR',
-                        {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        }
-                      )}{' '}
-                      -{' '}
-                      {new Date(meeting.end_time).toLocaleTimeString('ko-KR', {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
-                    </p>
+                    </div>
+
+                    <div className="space-y-1">
+                      <p className="text-sm text-gray-600 flex items-center gap-1">
+                        <Calendar className="h-3 w-3" />
+                        {startDateTime.date}
+                      </p>
+                      <p className="text-sm text-gray-600 flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        {startDateTime.time} - {endDateTime.time}
+                      </p>
+                    </div>
                   </div>
+
+                  {meeting.message && (
+                    <div className="mb-4">
+                      <p className="text-sm text-gray-600 mb-1">메시지:</p>
+                      <p className="text-sm bg-gray-50 p-2 rounded">
+                        "{meeting.message}"
+                      </p>
+                    </div>
+                  )}
                 </div>
 
-                {meeting.buyer_message && (
-                  <div className="mb-4">
-                    <p className="text-sm text-gray-600 mb-1">메시지:</p>
-                    <p className="text-sm bg-gray-50 p-2 rounded">
-                      "{meeting.buyer_message}"
-                    </p>
-                  </div>
-                )}
-              </div>
+                <div className="flex flex-col gap-2 ml-4">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onMeetingSelect(meeting)}
+                  >
+                    <Eye className="mr-2 h-4 w-4" />
+                    상세보기
+                  </Button>
 
-              <div className="flex flex-col gap-2 ml-4">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => onMeetingSelect(meeting)}
-                >
-                  상세보기
-                </Button>
-
-                {meeting.status === 'pending' && (
-                  <div className="flex gap-1">
-                    <Button
-                      size="sm"
-                      onClick={() => onMeetingAction(meeting.id, 'confirmed')}
-                    >
-                      <Check className="h-3 w-3" />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => onMeetingAction(meeting.id, 'rejected')}
-                    >
-                      <X className="h-3 w-3" />
-                    </Button>
-                  </div>
-                )}
+                  {meeting.status === 'PENDING' && (
+                    <div className="flex gap-1">
+                      <Button
+                        size="sm"
+                        onClick={() => onMeetingAction(meeting.id, 'CONFIRMED')}
+                      >
+                        <Check className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => onMeetingAction(meeting.id, 'REJECTED')}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
+            </CardContent>
+          </Card>
+        )
+      })}
     </div>
   )
 }

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useSession } from 'next-auth/react'
 
 import {
   Building2,
@@ -10,9 +11,9 @@ import {
   CheckCircle,
   XCircle,
   AlertCircle,
+  UserCheck,
 } from 'lucide-react'
 
-import { AdminGuard } from '@/components/admin/admin-guard'
 import { AdminHeader } from '@/components/layout/admin-header'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -25,10 +26,9 @@ import {
 
 import { useToast } from '@/hooks/use-toast'
 
-import { supabase } from '@/lib/supabase/supabase'
-
 interface AdminStats {
   totalCompanies: number
+  totalBuyers: number
   totalMeetings: number
   pendingMeetings: number
   confirmedMeetings: number
@@ -38,20 +38,30 @@ interface AdminStats {
 
 interface RecentMeeting {
   id: string
-  meeting_time: string
-  status: string
-  companies: {
-    name: string
-  }
-  buyers: {
+  status: 'PENDING' | 'CONFIRMED' | 'REJECTED' | 'CANCELLED'
+  message?: string
+  createdAt: string
+  company: {
+    id: string
     name: string
     email: string
+  }
+  buyer: {
+    id: string
+    name: string
+    email: string
+  }
+  timeSlot: {
+    startTime: string
+    endTime: string
   }
 }
 
 export default function AdminDashboard() {
+  const { data: session } = useSession()
   const [stats, setStats] = useState<AdminStats>({
     totalCompanies: 0,
+    totalBuyers: 0,
     totalMeetings: 0,
     pendingMeetings: 0,
     confirmedMeetings: 0,
@@ -64,51 +74,53 @@ export default function AdminDashboard() {
   const { toast } = useToast()
 
   useEffect(() => {
-    fetchDashboardData()
-  }, [])
+    if (session?.user) {
+      fetchDashboardData()
+    }
+  }, [session])
 
   const fetchDashboardData = async () => {
     try {
-      // 기업 수 조회
-      const { count: companiesCount } = await supabase
-        .from('companies')
-        .select('*', { count: 'exact', head: true })
-        .eq('is_active', true)
+      // 통계 데이터 동시 조회
+      const [usersResponse, meetingsResponse] = await Promise.all([
+        fetch('/api/admin/users'),
+        fetch('/api/meetings')
+      ])
 
-      // 미팅 통계 조회
-      const { data: meetings } = await supabase
-        .from('meetings')
-        .select(
-          `
-          *,
-          companies (name),
-          buyers (name, email)
-        `
-        )
-        .order('created_at', { ascending: false })
-
-      if (meetings) {
-        const today = new Date().toDateString()
-
-        const stats = {
-          totalCompanies: companiesCount || 0,
-          totalMeetings: meetings.length,
-          pendingMeetings: meetings.filter((m: any) => m.status === 'pending')
-            .length,
-          confirmedMeetings: meetings.filter(
-            (m: any) => m.status === 'confirmed'
-          ).length,
-          rejectedMeetings: meetings.filter((m: any) => m.status === 'rejected')
-            .length,
-          todayMeetings: meetings.filter(
-            (m: any) => new Date(m.meeting_time).toDateString() === today
-          ).length,
-        }
-
-        setStats(stats)
-        setRecentMeetings(meetings.slice(0, 10))
+      if (!usersResponse.ok || !meetingsResponse.ok) {
+        throw new Error('데이터 조회 실패')
       }
+
+      const usersData = await usersResponse.json()
+      const meetingsData = await meetingsResponse.json()
+
+      // 사용자 통계 계산
+      const companies = usersData.users?.filter((user: any) => user.role === 'COMPANY') || []
+      const buyers = usersData.users?.filter((user: any) => user.role === 'BUYER') || []
+
+      // 미팅 통계 계산
+      const meetings = Array.isArray(meetingsData) ? meetingsData : []
+      const today = new Date().toDateString()
+
+      const statsData = {
+        totalCompanies: companies.length,
+        totalBuyers: buyers.length,
+        totalMeetings: meetings.length,
+        pendingMeetings: meetings.filter((m: any) => m.status === 'PENDING').length,
+        confirmedMeetings: meetings.filter((m: any) => m.status === 'CONFIRMED').length,
+        rejectedMeetings: meetings.filter((m: any) => m.status === 'REJECTED').length,
+        todayMeetings: meetings.filter((m: any) => {
+          const meetingDate = new Date(m.timeSlot?.startTime).toDateString()
+          return meetingDate === today
+        }).length,
+      }
+
+      setStats(statsData)
+      // 최근 미팅 10개 (최신순)
+      setRecentMeetings(meetings.slice(0, 10))
+
     } catch (error) {
+      console.error('Dashboard data fetch error:', error)
       toast({
         title: '데이터 로딩 오류',
         description: '대시보드 데이터를 불러오는데 실패했습니다.',
@@ -121,7 +133,7 @@ export default function AdminDashboard() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'pending':
+      case 'PENDING':
         return (
           <Badge
             variant="outline"
@@ -130,16 +142,22 @@ export default function AdminDashboard() {
             대기중
           </Badge>
         )
-      case 'confirmed':
+      case 'CONFIRMED':
         return (
           <Badge variant="outline" className="text-green-600 border-green-600">
             승인됨
           </Badge>
         )
-      case 'rejected':
+      case 'REJECTED':
         return (
           <Badge variant="outline" className="text-red-600 border-red-600">
             거절됨
+          </Badge>
+        )
+      case 'CANCELLED':
+        return (
+          <Badge variant="outline" className="text-gray-600 border-gray-600">
+            취소됨
           </Badge>
         )
       default:
@@ -147,9 +165,19 @@ export default function AdminDashboard() {
     }
   }
 
+  const formatDateTime = (dateString: string) => {
+    const date = new Date(dateString)
+    return {
+      date: date.toLocaleDateString('ko-KR'),
+      time: date.toLocaleTimeString('ko-KR', {
+        hour: '2-digit',
+        minute: '2-digit',
+      })
+    }
+  }
+
   if (loading) {
     return (
-      <AdminGuard>
         <div className="min-h-screen bg-gray-50">
           <AdminHeader />
           <div className="container mx-auto px-4 py-8">
@@ -159,12 +187,10 @@ export default function AdminDashboard() {
             </div>
           </div>
         </div>
-      </AdminGuard>
     )
   }
 
   return (
-    <AdminGuard>
       <div className="min-h-screen bg-gray-50">
         <AdminHeader />
 
@@ -178,7 +204,7 @@ export default function AdminDashboard() {
             </p>
           </div>
 
-          {/* 통계 카드 */}
+          {/* 사용자 통계 카드 */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -189,7 +215,20 @@ export default function AdminDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{stats.totalCompanies}</div>
-                <p className="text-xs text-muted-foreground">활성 기업 수</p>
+                <p className="text-xs text-muted-foreground">등록된 기업 수</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  총 바이어
+                </CardTitle>
+                <UserCheck className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.totalBuyers}</div>
+                <p className="text-xs text-muted-foreground">등록된 바이어 수</p>
               </CardContent>
             </Card>
 
@@ -209,21 +248,6 @@ export default function AdminDashboard() {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  대기중인 신청
-                </CardTitle>
-                <AlertCircle className="h-4 w-4 text-yellow-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-yellow-600">
-                  {stats.pendingMeetings}
-                </div>
-                <p className="text-xs text-muted-foreground">승인 대기중</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
                   오늘의 미팅
                 </CardTitle>
                 <Clock className="h-4 w-4 text-muted-foreground" />
@@ -237,8 +261,23 @@ export default function AdminDashboard() {
             </Card>
           </div>
 
-          {/* 상세 통계 */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          {/* 미팅 상태별 통계 */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  대기중인 신청
+                </CardTitle>
+                <AlertCircle className="h-4 w-4 text-yellow-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-yellow-600">
+                  {stats.pendingMeetings}
+                </div>
+                <p className="text-xs text-muted-foreground">승인 대기중</p>
+              </CardContent>
+            </Card>
+
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
@@ -287,7 +326,7 @@ export default function AdminDashboard() {
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">성공률</CardTitle>
+                <CardTitle className="text-sm font-medium">미팅 성사율</CardTitle>
                 <TrendingUp className="h-4 w-4 text-primary" />
               </CardHeader>
               <CardContent>
@@ -299,7 +338,7 @@ export default function AdminDashboard() {
                     : 0}
                   %
                 </div>
-                <p className="text-xs text-muted-foreground">미팅 성사율</p>
+                <p className="text-xs text-muted-foreground">전체 성사율</p>
               </CardContent>
             </Card>
           </div>
@@ -322,46 +361,44 @@ export default function AdminDashboard() {
                 </p>
               ) : (
                 <div className="space-y-4">
-                  {recentMeetings.map(meeting => (
-                    <div
-                      key={meeting.id}
-                      className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
-                    >
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-1">
-                          <p className="font-medium">
-                            {meeting.companies.name}
-                          </p>
-                          <span className="text-gray-400">×</span>
-                          <p className="text-gray-600">{meeting.buyers.name}</p>
-                        </div>
-                        <div className="flex items-center gap-4 text-sm text-gray-500">
-                          <span>{meeting.buyers.email}</span>
-                          <span>
-                            {new Date(meeting.meeting_time).toLocaleDateString(
-                              'ko-KR'
-                            )}{' '}
-                            {new Date(meeting.meeting_time).toLocaleTimeString(
-                              'ko-KR',
-                              {
-                                hour: '2-digit',
-                                minute: '2-digit',
-                              }
+                  {recentMeetings.map(meeting => {
+                    const dateTime = formatDateTime(meeting.timeSlot.startTime)
+                    return (
+                      <div
+                        key={meeting.id}
+                        className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
+                      >
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-1">
+                            <p className="font-medium">
+                              {meeting.company.name}
+                            </p>
+                            <span className="text-gray-400">×</span>
+                            <p className="text-gray-600">{meeting.buyer.name}</p>
+                          </div>
+                          <div className="flex items-center gap-4 text-sm text-gray-500">
+                            <span>{meeting.buyer.email}</span>
+                            <span>
+                              {dateTime.date} {dateTime.time}
+                            </span>
+                            {meeting.message && (
+                              <span className="truncate max-w-xs">
+                                "{meeting.message}"
+                              </span>
                             )}
-                          </span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {getStatusBadge(meeting.status)}
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        {getStatusBadge(meeting.status)}
-                      </div>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               )}
             </CardContent>
           </Card>
         </div>
       </div>
-    </AdminGuard>
   )
 }
