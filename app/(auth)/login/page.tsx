@@ -1,10 +1,10 @@
 'use client'
 
+import { signIn, getSession } from 'next-auth/react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import type React from 'react'
 import { useState, useEffect } from 'react'
-import { signIn, getSession } from 'next-auth/react'
 
 import { Building2, Eye, EyeOff, RefreshCw } from 'lucide-react'
 
@@ -64,13 +64,13 @@ export default function LoginPage() {
   // 테스트 데이터 초기화 (관리자 기능)
   const handleResetData = async () => {
     setIsResetting(true)
-    
+
     try {
       const response = await fetch('/api/admin/reset-data', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
-        }
+          'Content-Type': 'application/json',
+        },
       })
 
       if (response.ok) {
@@ -123,7 +123,7 @@ export default function LoginPage() {
       } else if (result?.ok) {
         // 로그인 성공 후 세션 정보 가져오기
         const session = await getSession()
-        
+
         if (session?.user) {
           toast({
             title: '로그인 성공',
@@ -252,7 +252,9 @@ export default function LoginPage() {
                 className="w-full bg-transparent"
                 disabled={isResetting}
               >
-                <RefreshCw className={`mr-2 h-4 w-4 ${isResetting ? 'animate-spin' : ''}`} />
+                <RefreshCw
+                  className={`mr-2 h-4 w-4 ${isResetting ? 'animate-spin' : ''}`}
+                />
                 {isResetting ? '초기화 중...' : '테스트 데이터 초기화'}
               </Button>
             </form>

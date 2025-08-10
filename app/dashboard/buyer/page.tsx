@@ -1,9 +1,9 @@
 'use client'
 
+import { useSession } from 'next-auth/react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
-import { useSession } from 'next-auth/react'
 
 import { Calendar, Clock, Building2, User } from 'lucide-react'
 
@@ -81,17 +81,18 @@ export default function BuyerDashboard() {
 
     try {
       const response = await fetch('/api/meetings')
-      
+
       if (!response.ok) {
         throw new Error('미팅 목록 조회 실패')
       }
 
       const meetingsData = await response.json()
-      
+
       // 배열 데이터 검증 및 최신순 정렬
-      const sortedMeetings = Array.isArray(meetingsData) 
-        ? meetingsData.sort((a: any, b: any) => 
-            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      const sortedMeetings = Array.isArray(meetingsData)
+        ? meetingsData.sort(
+            (a: any, b: any) =>
+              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
           )
         : []
 
@@ -112,7 +113,10 @@ export default function BuyerDashboard() {
     switch (status) {
       case 'PENDING':
         return (
-          <Badge variant="outline" className="text-yellow-600 border-yellow-600">
+          <Badge
+            variant="outline"
+            className="text-yellow-600 border-yellow-600"
+          >
             대기중
           </Badge>
         )
@@ -146,7 +150,7 @@ export default function BuyerDashboard() {
       time: date.toLocaleTimeString('ko-KR', {
         hour: '2-digit',
         minute: '2-digit',
-      })
+      }),
     }
   }
 
@@ -155,8 +159,9 @@ export default function BuyerDashboard() {
     total: meetings.length,
     pending: meetings.filter(m => m.status === 'PENDING').length,
     confirmed: meetings.filter(m => m.status === 'CONFIRMED').length,
-    upcoming: meetings.filter(m => 
-      m.status === 'CONFIRMED' && new Date(m.timeSlot.startTime) > new Date()
+    upcoming: meetings.filter(
+      m =>
+        m.status === 'CONFIRMED' && new Date(m.timeSlot.startTime) > new Date()
     ).length,
   }
 
@@ -288,7 +293,9 @@ export default function BuyerDashboard() {
             ) : (
               <div className="space-y-4">
                 {meetings.map(meeting => {
-                  const startDateTime = formatDateTime(meeting.timeSlot.startTime)
+                  const startDateTime = formatDateTime(
+                    meeting.timeSlot.startTime
+                  )
                   const endDateTime = formatDateTime(meeting.timeSlot.endTime)
                   const createdDateTime = formatDateTime(meeting.createdAt)
 
@@ -342,9 +349,10 @@ export default function BuyerDashboard() {
                         <div className="space-y-1">
                           {meeting.company.website && (
                             <a
-                              href={meeting.company.website.startsWith('http') 
-                                ? meeting.company.website 
-                                : `https://${meeting.company.website}`
+                              href={
+                                meeting.company.website.startsWith('http')
+                                  ? meeting.company.website
+                                  : `https://${meeting.company.website}`
                               }
                               target="_blank"
                               rel="noopener noreferrer"
@@ -358,7 +366,9 @@ export default function BuyerDashboard() {
 
                       {meeting.message && (
                         <div className="mb-3">
-                          <p className="text-sm text-gray-600 mb-1">내 메시지:</p>
+                          <p className="text-sm text-gray-600 mb-1">
+                            내 메시지:
+                          </p>
                           <p className="text-sm bg-blue-50 p-2 rounded">
                             "{meeting.message}"
                           </p>
@@ -370,7 +380,9 @@ export default function BuyerDashboard() {
                         <div className="mb-3">
                           <div className="flex items-center gap-2 text-sm text-green-600">
                             <div className="w-2 h-2 bg-green-600 rounded-full"></div>
-                            <span>미팅이 승인되었습니다. 일정을 확인해주세요.</span>
+                            <span>
+                              미팅이 승인되었습니다. 일정을 확인해주세요.
+                            </span>
                           </div>
                         </div>
                       )}
@@ -379,7 +391,9 @@ export default function BuyerDashboard() {
                         <div className="mb-3">
                           <div className="flex items-center gap-2 text-sm text-red-600">
                             <div className="w-2 h-2 bg-red-600 rounded-full"></div>
-                            <span>미팅이 거절되었습니다. 다른 시간대를 확인해보세요.</span>
+                            <span>
+                              미팅이 거절되었습니다. 다른 시간대를 확인해보세요.
+                            </span>
                           </div>
                         </div>
                       )}

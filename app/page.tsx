@@ -46,11 +46,11 @@ export default function HomePage() {
     try {
       // 새로운 API 엔드포인트 호출
       const response = await fetch('/api/event')
-      
+
       if (!response.ok) {
         throw new Error('Failed to fetch event')
       }
-      
+
       const activeEvent = await response.json()
       setEvent(activeEvent)
     } catch (error) {
@@ -95,7 +95,8 @@ export default function HomePage() {
                   className="text-primary border-primary"
                 >
                   <Calendar className="mr-1 h-3 w-3" />
-                  {new Date(event.startDate).toLocaleDateString('ko-KR')} - {new Date(event.endDate).toLocaleDateString('ko-KR')}
+                  {new Date(event.startDate).toLocaleDateString('ko-KR')} -{' '}
+                  {new Date(event.endDate).toLocaleDateString('ko-KR')}
                 </Badge>
                 <Badge
                   variant="outline"
@@ -116,7 +117,8 @@ export default function HomePage() {
 
           {/* 헤더 텍스트 또는 기본 설명 */}
           <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-            {event?.headerText || event?.description ||
+            {event?.headerText ||
+              event?.description ||
               '기업과 바이어를 효율적으로 연결하여 새로운 비즈니스 기회를 창출하세요. 간편한 예약 시스템으로 원하는 시간에 미팅을 잡을 수 있습니다.'}
           </p>
 

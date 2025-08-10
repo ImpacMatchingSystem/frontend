@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
 
 import {
   Calendar,
@@ -70,7 +70,8 @@ export default function CompanyMeetingsPage() {
   const router = useRouter()
   const [meetings, setMeetings] = useState<MeetingWithDetails[]>([])
   const [loading, setLoading] = useState(true)
-  const [selectedMeeting, setSelectedMeeting] = useState<MeetingWithDetails | null>(null)
+  const [selectedMeeting, setSelectedMeeting] =
+    useState<MeetingWithDetails | null>(null)
   const [statusFilter, setStatusFilter] = useState('all')
 
   const { toast } = useToast()
@@ -101,15 +102,16 @@ export default function CompanyMeetingsPage() {
 
     try {
       const response = await fetch('/api/meetings')
-      
+
       if (!response.ok) {
         throw new Error('미팅 목록 조회 실패')
       }
 
       const meetingsData = await response.json()
-      const sortedMeetings = Array.isArray(meetingsData) 
-        ? meetingsData.sort((a: any, b: any) => 
-            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      const sortedMeetings = Array.isArray(meetingsData)
+        ? meetingsData.sort(
+            (a: any, b: any) =>
+              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
           )
         : []
 
@@ -164,7 +166,10 @@ export default function CompanyMeetingsPage() {
     switch (status) {
       case 'PENDING':
         return (
-          <Badge variant="outline" className="text-yellow-600 border-yellow-600">
+          <Badge
+            variant="outline"
+            className="text-yellow-600 border-yellow-600"
+          >
             대기중
           </Badge>
         )
@@ -198,7 +203,7 @@ export default function CompanyMeetingsPage() {
       time: date.toLocaleTimeString('ko-KR', {
         hour: '2-digit',
         minute: '2-digit',
-      })
+      }),
     }
   }
 
@@ -360,12 +365,13 @@ export default function CompanyMeetingsPage() {
                       )}
                       {selectedMeeting.buyer.website && (
                         <p className="text-sm text-blue-600">
-                          <a 
-                            href={selectedMeeting.buyer.website.startsWith('http') 
-                              ? selectedMeeting.buyer.website 
-                              : `https://${selectedMeeting.buyer.website}`
+                          <a
+                            href={
+                              selectedMeeting.buyer.website.startsWith('http')
+                                ? selectedMeeting.buyer.website
+                                : `https://${selectedMeeting.buyer.website}`
                             }
-                            target="_blank" 
+                            target="_blank"
                             rel="noopener noreferrer"
                           >
                             {selectedMeeting.buyer.website}
@@ -382,12 +388,18 @@ export default function CompanyMeetingsPage() {
                     </Label>
                     <div className="p-3 bg-gray-50 rounded-lg space-y-1">
                       <p className="font-medium">
-                        {formatDateTime(selectedMeeting.timeSlot.startTime).date}
+                        {
+                          formatDateTime(selectedMeeting.timeSlot.startTime)
+                            .date
+                        }
                       </p>
                       <p className="text-sm text-gray-600 flex items-center gap-1">
                         <Clock className="h-3 w-3" />
-                        {formatDateTime(selectedMeeting.timeSlot.startTime).time} - 
-                        {formatDateTime(selectedMeeting.timeSlot.endTime).time}
+                        {
+                          formatDateTime(selectedMeeting.timeSlot.startTime)
+                            .time
+                        }{' '}
+                        -{formatDateTime(selectedMeeting.timeSlot.endTime).time}
                       </p>
                       <div className="pt-2">
                         {getStatusBadge(selectedMeeting.status)}
@@ -455,7 +467,10 @@ function MeetingList({
     switch (status) {
       case 'PENDING':
         return (
-          <Badge variant="outline" className="text-yellow-600 border-yellow-600">
+          <Badge
+            variant="outline"
+            className="text-yellow-600 border-yellow-600"
+          >
             대기중
           </Badge>
         )
@@ -489,7 +504,7 @@ function MeetingList({
       time: date.toLocaleTimeString('ko-KR', {
         hour: '2-digit',
         minute: '2-digit',
-      })
+      }),
     }
   }
 

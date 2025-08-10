@@ -356,7 +356,6 @@ import { NextRequest, NextResponse } from 'next/server'
 
 import { z } from 'zod'
 
-
 // 요청 스키마 정의
 const createMeetingSchema = z.object({
   title: z.string().min(1),

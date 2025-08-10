@@ -1,7 +1,7 @@
 'use client'
 
-import type React from 'react'
 import { SessionProvider } from 'next-auth/react'
+import type React from 'react'
 
 import { Toaster } from '@/components/ui/toaster'
 

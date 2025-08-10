@@ -1,7 +1,9 @@
 'use client'
 
+import { signOut, useSession } from 'next-auth/react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 
 import { useAuthStore } from '@/store/auth-store'
 import { Shield, LogOut, BarChart3, Users, Calendar, User } from 'lucide-react'
@@ -15,8 +17,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { useState } from 'react'
-import { signOut, useSession } from 'next-auth/react'
+
 import { useToast } from '@/hooks/use-toast'
 
 export function AdminHeader() {
@@ -110,20 +111,14 @@ export function AdminHeader() {
           ) : user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  className="flex items-center space-x-2"
-                >
+                <Button variant="ghost" className="flex items-center space-x-2">
                   <User className="h-4 w-4" />
                   <span>{user.name}</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="bg-white w-48">
                 <DropdownMenuItem asChild>
-                  <Link
-                    href={getDashboardLink()}
-                    className="flex items-center"
-                  >
+                  <Link href={getDashboardLink()} className="flex items-center">
                     <User className="mr-2 h-4 w-4" />
                     대시보드
                   </Link>

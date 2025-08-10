@@ -1,9 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { prisma } from "@/lib/config/db"
-import { authOptions } from '@/lib/config/auth'
-import * as XLSX from 'xlsx'
+import { NextRequest, NextResponse } from 'next/server'
+
 import bcrypt from 'bcryptjs'
+import * as XLSX from 'xlsx'
+
+import { authOptions } from '@/lib/config/auth'
+import { prisma } from '@/lib/config/db'
 
 export async function POST(req: NextRequest) {
   try {
@@ -21,7 +23,10 @@ export async function POST(req: NextRequest) {
     }
 
     if (!['COMPANY', 'BUYER'].includes(type)) {
-      return NextResponse.json({ error: '유효하지 않은 타입입니다' }, { status: 400 })
+      return NextResponse.json(
+        { error: '유효하지 않은 타입입니다' },
+        { status: 400 }
+      )
     }
 
     const bytes = await file.arrayBuffer()
@@ -44,7 +49,13 @@ export async function POST(req: NextRequest) {
         let userData: any = {}
 
         if (type === 'COMPANY') {
-          const requiredFields = ['기업이름', '기업이메일', '기업소개', '기업홈페이지', '비밀번호']
+          const requiredFields = [
+            '기업이름',
+            '기업이메일',
+            '기업소개',
+            '기업홈페이지',
+            '비밀번호',
+          ]
           for (const field of requiredFields) {
             if (!row[field]) {
               throw new Error(`${field}이(가) 필요합니다`)
@@ -68,10 +79,16 @@ export async function POST(req: NextRequest) {
             description: row['기업소개'].trim(),
             website: website,
             password: await bcrypt.hash(row['비밀번호'].toString(), 12),
-            role: 'COMPANY'
+            role: 'COMPANY',
           }
         } else {
-          const requiredFields = ['바이어이름', '바이어이메일', '바이어소개', '바이어홈페이지', '비밀번호']
+          const requiredFields = [
+            '바이어이름',
+            '바이어이메일',
+            '바이어소개',
+            '바이어홈페이지',
+            '비밀번호',
+          ]
           for (const field of requiredFields) {
             if (!row[field]) {
               throw new Error(`${field}이(가) 필요합니다`)
@@ -95,12 +112,12 @@ export async function POST(req: NextRequest) {
             description: row['바이어소개'].trim(),
             website: website,
             password: await bcrypt.hash(row['비밀번호'].toString(), 12),
-            role: 'BUYER'
+            role: 'BUYER',
           }
         }
 
         const existingUser = await prisma.user.findUnique({
-          where: { email: userData.email }
+          where: { email: userData.email },
         })
 
         if (existingUser) {
@@ -113,21 +130,20 @@ export async function POST(req: NextRequest) {
             id: true,
             name: true,
             email: true,
-            role: true
-          }
+            role: true,
+          },
         })
 
         results.push({
           row: rowIndex,
           success: true,
-          user
+          user,
         })
-
       } catch (error) {
         errors.push({
           row: rowIndex,
           error: error,
-          data: row
+          data: row,
         })
       }
     }
@@ -139,10 +155,9 @@ export async function POST(req: NextRequest) {
       summary: {
         total: jsonData.length,
         success: results.length,
-        failed: errors.length
-      }
+        failed: errors.length,
+      },
     })
-
   } catch (error) {
     console.error('Excel upload error:', error)
     return NextResponse.json(

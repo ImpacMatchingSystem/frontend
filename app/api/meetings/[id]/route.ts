@@ -1,8 +1,12 @@
-import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { prisma } from '@/lib/config/db'
+import { NextRequest, NextResponse } from 'next/server'
+
+import {
+  notifyMeetingApproved,
+  notifyMeetingRejected,
+} from '@/lib/application/notification'
 import { authOptions } from '@/lib/config/auth'
-import { notifyMeetingApproved, notifyMeetingRejected } from '@/lib/application/notification'
+import { prisma } from '@/lib/config/db'
 
 export async function PATCH(
   req: NextRequest,
@@ -21,21 +25,21 @@ export async function PATCH(
       return NextResponse.json({ error: 'Invalid status' }, { status: 400 })
     }
 
-    const meeting = await prisma.$transaction(async (tx:any) => {
+    const meeting = await prisma.$transaction(async (tx: any) => {
       const updatedMeeting = await tx.meeting.update({
         where: { id: meetingId },
         data: { status },
         include: {
           company: true,
           buyer: true,
-          timeSlot: true
-        }
+          timeSlot: true,
+        },
       })
 
       if (status === 'REJECTED') {
         await tx.timeSlot.update({
           where: { id: updatedMeeting.timeSlotId },
-          data: { isBooked: false }
+          data: { isBooked: false },
         })
       }
 

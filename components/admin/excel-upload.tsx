@@ -25,7 +25,11 @@ import { Label } from '@/components/ui/label'
 import { Progress } from '@/components/ui/progress'
 
 import { useToast } from '@/hooks/use-toast'
-import { downloadCompanyTemplate, downloadBuyerTemplate } from '@/lib/utils/excel-utils'
+
+import {
+  downloadCompanyTemplate,
+  downloadBuyerTemplate,
+} from '@/lib/utils/excel-utils'
 
 interface ExcelUploadProps {
   type: 'COMPANY' | 'BUYER'
@@ -120,7 +124,7 @@ export function ExcelUpload({ type, onUploadComplete }: ExcelUploadProps) {
       }
 
       const uploadResult: UploadResult = await response.json()
-      
+
       setProgress(100)
       setResults(uploadResult)
 
@@ -145,20 +149,26 @@ export function ExcelUpload({ type, onUploadComplete }: ExcelUploadProps) {
       }
 
       // 모든 항목이 실패한 경우
-      if (uploadResult.summary.failed > 0 && uploadResult.summary.success === 0) {
+      if (
+        uploadResult.summary.failed > 0 &&
+        uploadResult.summary.success === 0
+      ) {
         toast({
           title: '업로드 실패',
-          description: '모든 항목의 업로드에 실패했습니다. 오류 내용을 확인해주세요.',
+          description:
+            '모든 항목의 업로드에 실패했습니다. 오류 내용을 확인해주세요.',
           variant: 'destructive',
         })
       }
-
     } catch (error) {
       console.error('Upload error:', error)
       setResults(null)
       toast({
         title: '업로드 실패',
-        description: error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.',
+        description:
+          error instanceof Error
+            ? error.message
+            : '알 수 없는 오류가 발생했습니다.',
         variant: 'destructive',
       })
     } finally {
@@ -174,7 +184,7 @@ export function ExcelUpload({ type, onUploadComplete }: ExcelUploadProps) {
       } else {
         downloadBuyerTemplate()
       }
-      
+
       toast({
         title: '템플릿 다운로드',
         description: '템플릿 파일이 다운로드되었습니다.',
@@ -204,7 +214,8 @@ export function ExcelUpload({ type, onUploadComplete }: ExcelUploadProps) {
           Excel {typeDisplayName} 일괄 업로드
         </CardTitle>
         <CardDescription>
-          Excel 파일을 사용하여 {typeDisplayName} 데이터를 일괄로 업로드할 수 있습니다.
+          Excel 파일을 사용하여 {typeDisplayName} 데이터를 일괄로 업로드할 수
+          있습니다.
         </CardDescription>
       </CardHeader>
 
@@ -246,7 +257,12 @@ export function ExcelUpload({ type, onUploadComplete }: ExcelUploadProps) {
                   ({(file.size / 1024).toFixed(1)} KB)
                 </span>
               </div>
-              <Button variant="ghost" size="sm" onClick={resetUpload} disabled={uploading}>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={resetUpload}
+                disabled={uploading}
+              >
                 제거
               </Button>
             </div>
@@ -282,7 +298,8 @@ export function ExcelUpload({ type, onUploadComplete }: ExcelUploadProps) {
               <Alert>
                 <CheckCircle className="h-4 w-4" />
                 <AlertDescription>
-                  <strong>{results.summary.success}개 항목</strong>이 성공적으로 업로드되었습니다.
+                  <strong>{results.summary.success}개 항목</strong>이 성공적으로
+                  업로드되었습니다.
                 </AlertDescription>
               </Alert>
             )}
@@ -293,7 +310,8 @@ export function ExcelUpload({ type, onUploadComplete }: ExcelUploadProps) {
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
                   <div>
-                    <strong>{results.errors.length}개 오류</strong>가 발생했습니다:
+                    <strong>{results.errors.length}개 오류</strong>가
+                    발생했습니다:
                     <ul className="mt-2 space-y-1 text-sm max-h-40 overflow-y-auto">
                       {results.errors.slice(0, 10).map((error, index) => (
                         <li key={index} className="list-disc list-inside">
@@ -314,15 +332,21 @@ export function ExcelUpload({ type, onUploadComplete }: ExcelUploadProps) {
             {/* 상세 통계 */}
             <div className="grid grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg">
               <div className="text-center">
-                <div className="text-2xl font-bold text-gray-900">{results.summary.total}</div>
+                <div className="text-2xl font-bold text-gray-900">
+                  {results.summary.total}
+                </div>
                 <div className="text-sm text-gray-600">총 항목</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-green-600">{results.summary.success}</div>
+                <div className="text-2xl font-bold text-green-600">
+                  {results.summary.success}
+                </div>
                 <div className="text-sm text-gray-600">성공</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-red-600">{results.summary.failed}</div>
+                <div className="text-2xl font-bold text-red-600">
+                  {results.summary.failed}
+                </div>
                 <div className="text-sm text-gray-600">실패</div>
               </div>
             </div>
@@ -334,7 +358,8 @@ export function ExcelUpload({ type, onUploadComplete }: ExcelUploadProps) {
           <h4 className="font-medium text-gray-900 mb-2">사용법</h4>
           <ol className="text-sm text-gray-600 space-y-1 list-decimal list-inside">
             <li>
-              위의 "템플릿 다운로드" 버튼을 클릭하여 Excel 템플릿을 다운로드합니다.
+              위의 "템플릿 다운로드" 버튼을 클릭하여 Excel 템플릿을
+              다운로드합니다.
             </li>
             <li>템플릿에 맞춰 {typeDisplayName} 데이터를 입력합니다.</li>
             <li>
@@ -344,15 +369,19 @@ export function ExcelUpload({ type, onUploadComplete }: ExcelUploadProps) {
               업로드 결과를 확인하고 오류가 있다면 수정 후 다시 업로드합니다.
             </li>
           </ol>
-          
+
           {/* 필수 필드 안내 */}
           <div className="mt-3 p-3 bg-white rounded border">
             <h5 className="font-medium text-gray-900 mb-1">필수 필드</h5>
             <div className="text-sm text-gray-600">
               {type === 'COMPANY' ? (
-                <span>기업이름, 기업이메일, 기업소개, 기업홈페이지, 비밀번호</span>
+                <span>
+                  기업이름, 기업이메일, 기업소개, 기업홈페이지, 비밀번호
+                </span>
               ) : (
-                <span>바이어이름, 바이어이메일, 바이어소개, 바이어홈페이지, 비밀번호</span>
+                <span>
+                  바이어이름, 바이어이메일, 바이어소개, 바이어홈페이지, 비밀번호
+                </span>
               )}
             </div>
           </div>

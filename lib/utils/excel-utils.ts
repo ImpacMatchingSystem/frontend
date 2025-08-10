@@ -26,12 +26,12 @@ export const downloadCompanyTemplate = () => {
       기업소개: '금융 기술 혁신 서비스',
       기업홈페이지: 'fintech.com',
       비밀번호: 'company789!',
-    }
+    },
   ]
 
   const ws = XLSX.utils.json_to_sheet(template)
   const wb = XLSX.utils.book_new()
-  
+
   // 컬럼 너비 설정
   ws['!cols'] = [
     { wch: 20 }, // 기업이름
@@ -40,7 +40,7 @@ export const downloadCompanyTemplate = () => {
     { wch: 30 }, // 기업홈페이지
     { wch: 15 }, // 비밀번호
   ]
-  
+
   XLSX.utils.book_append_sheet(wb, ws, '기업목록')
   XLSX.writeFile(wb, '기업_업로드_템플릿.xlsx')
 }
@@ -68,12 +68,12 @@ export const downloadBuyerTemplate = () => {
       바이어소개: '후기 단계 투자 전문',
       바이어홈페이지: 'https://growthfund.com',
       비밀번호: 'buyer789!',
-    }
+    },
   ]
 
   const ws = XLSX.utils.json_to_sheet(template)
   const wb = XLSX.utils.book_new()
-  
+
   // 컬럼 너비 설정
   ws['!cols'] = [
     { wch: 15 }, // 바이어이름
@@ -82,25 +82,31 @@ export const downloadBuyerTemplate = () => {
     { wch: 30 }, // 바이어홈페이지
     { wch: 15 }, // 비밀번호
   ]
-  
+
   XLSX.utils.book_append_sheet(wb, ws, '바이어목록')
   XLSX.writeFile(wb, '바이어_업로드_템플릿.xlsx')
 
   // 사용법 안내 시트 추가
   const instructionData = [
-    { 항목: '필수 필드', 설명: '바이어이름, 바이어이메일, 바이어소개, 바이어홈페이지, 비밀번호' },
+    {
+      항목: '필수 필드',
+      설명: '바이어이름, 바이어이메일, 바이어소개, 바이어홈페이지, 비밀번호',
+    },
     { 항목: '이메일 형식', 설명: 'example@domain.com 형식으로 입력' },
-    { 항목: '홈페이지', 설명: 'http:// 또는 https://가 없으면 자동으로 추가됩니다' },
+    {
+      항목: '홈페이지',
+      설명: 'http:// 또는 https://가 없으면 자동으로 추가됩니다',
+    },
     { 항목: '비밀번호', 설명: '8자 이상 권장' },
     { 항목: '주의사항', 설명: '중복된 이메일은 업로드되지 않습니다' },
   ]
-  
+
   const instructionWs = XLSX.utils.json_to_sheet(instructionData)
   instructionWs['!cols'] = [
     { wch: 15 }, // 항목
     { wch: 50 }, // 설명
   ]
-  
+
   XLSX.utils.book_append_sheet(wb, instructionWs, '사용법안내')
 }
 
@@ -133,26 +139,29 @@ export const validateEmailFormat = (email: string): boolean => {
   return emailRegex.test(email)
 }
 
-export const validateRequiredFields = (data: any, requiredFields: string[]): string[] => {
+export const validateRequiredFields = (
+  data: any,
+  requiredFields: string[]
+): string[] => {
   const errors: string[] = []
-  
+
   for (const field of requiredFields) {
     if (!data[field] || String(data[field]).trim() === '') {
       errors.push(`${field}이(가) 필요합니다`)
     }
   }
-  
+
   return errors
 }
 
 // URL 정규화 유틸리티
 export const normalizeUrl = (url: string): string => {
   if (!url) return ''
-  
+
   const trimmed = url.trim()
   if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
     return trimmed
   }
-  
+
   return `https://${trimmed}`
 }

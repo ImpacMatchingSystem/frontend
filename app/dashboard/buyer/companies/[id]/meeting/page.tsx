@@ -1,10 +1,17 @@
 'use client'
 
+import { useSession } from 'next-auth/react'
 import { useParams, useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
-import { useSession } from 'next-auth/react'
 
-import { Calendar, Clock, ArrowLeft, Send, Globe, Building2 } from 'lucide-react'
+import {
+  Calendar,
+  Clock,
+  ArrowLeft,
+  Send,
+  Globe,
+  Building2,
+} from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -57,7 +64,7 @@ export default function MeetingRequestPage() {
     const loadCompany = async () => {
       try {
         const response = await fetch(`/api/companies/${params.id}`)
-        
+
         if (!response.ok) {
           if (response.status === 404) {
             toast({
@@ -95,9 +102,9 @@ export default function MeetingRequestPage() {
   // 날짜별로 시간대 그룹화
   const groupTimeSlotsByDate = () => {
     if (!company?.timeSlots) return {}
-    
+
     const groups: { [date: string]: typeof company.timeSlots } = {}
-    
+
     company.timeSlots
       .filter(slot => !slot.isBooked && new Date(slot.startTime) > new Date())
       .forEach(slot => {
@@ -107,14 +114,15 @@ export default function MeetingRequestPage() {
         }
         groups[date].push(slot)
       })
-    
+
     // 각 날짜의 시간대를 시간순으로 정렬
     Object.keys(groups).forEach(date => {
-      groups[date].sort((a, b) => 
-        new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
+      groups[date].sort(
+        (a, b) =>
+          new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
       )
     })
-    
+
     return groups
   }
 
@@ -167,7 +175,10 @@ export default function MeetingRequestPage() {
       console.error('Failed to create meeting:', error)
       toast({
         title: '오류',
-        description: error instanceof Error ? error.message : '미팅 요청 중 오류가 발생했습니다.',
+        description:
+          error instanceof Error
+            ? error.message
+            : '미팅 요청 중 오류가 발생했습니다.',
         variant: 'destructive',
       })
     } finally {
@@ -197,7 +208,9 @@ export default function MeetingRequestPage() {
   }
 
   const timeSlotGroups = groupTimeSlotsByDate()
-  const selectedSlot = company.timeSlots.find(slot => slot.id === selectedTimeSlot)
+  const selectedSlot = company.timeSlots.find(
+    slot => slot.id === selectedTimeSlot
+  )
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -268,9 +281,12 @@ export default function MeetingRequestPage() {
                 </div>
 
                 <div>
-                  <h4 className="font-medium text-gray-900">사용 가능한 시간대</h4>
+                  <h4 className="font-medium text-gray-900">
+                    사용 가능한 시간대
+                  </h4>
                   <p className="text-sm text-gray-600 mt-1">
-                    {company.timeSlots.filter(slot => !slot.isBooked).length}개 시간대 예약 가능
+                    {company.timeSlots.filter(slot => !slot.isBooked).length}개
+                    시간대 예약 가능
                   </p>
                 </div>
               </CardContent>
@@ -307,9 +323,12 @@ export default function MeetingRequestPage() {
                       <Clock className="mr-2 h-4 w-4" />
                       시간대 선택
                     </h4>
-                    
+
                     {Object.entries(timeSlotGroups)
-                      .sort(([a], [b]) => new Date(a).getTime() - new Date(b).getTime())
+                      .sort(
+                        ([a], [b]) =>
+                          new Date(a).getTime() - new Date(b).getTime()
+                      )
                       .map(([date, slots]) => (
                         <div key={date} className="space-y-2">
                           <h5 className="font-medium text-gray-800">
@@ -323,16 +342,23 @@ export default function MeetingRequestPage() {
                             {slots.map(slot => (
                               <Button
                                 key={slot.id}
-                                variant={selectedTimeSlot === slot.id ? 'default' : 'outline'}
+                                variant={
+                                  selectedTimeSlot === slot.id
+                                    ? 'default'
+                                    : 'outline'
+                                }
                                 size="sm"
                                 className="h-auto p-2 flex flex-col"
                                 onClick={() => setSelectedTimeSlot(slot.id)}
                               >
                                 <span className="text-xs">
-                                  {new Date(slot.startTime).toLocaleTimeString('ko-KR', {
-                                    hour: '2-digit',
-                                    minute: '2-digit',
-                                  })}
+                                  {new Date(slot.startTime).toLocaleTimeString(
+                                    'ko-KR',
+                                    {
+                                      hour: '2-digit',
+                                      minute: '2-digit',
+                                    }
+                                  )}
                                 </span>
                                 <span className="text-xs text-gray-500">
                                   30분
@@ -367,21 +393,34 @@ export default function MeetingRequestPage() {
                     <div className="space-y-1 text-sm text-gray-600">
                       <p>• 기업: {company.name}</p>
                       <p>
-                        • 날짜: {new Date(selectedSlot.startTime).toLocaleDateString('ko-KR', {
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric',
-                          weekday: 'long',
-                        })}
+                        • 날짜:{' '}
+                        {new Date(selectedSlot.startTime).toLocaleDateString(
+                          'ko-KR',
+                          {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                            weekday: 'long',
+                          }
+                        )}
                       </p>
                       <p>
-                        • 시간: {new Date(selectedSlot.startTime).toLocaleTimeString('ko-KR', {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })} - {new Date(selectedSlot.endTime).toLocaleTimeString('ko-KR', {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
+                        • 시간:{' '}
+                        {new Date(selectedSlot.startTime).toLocaleTimeString(
+                          'ko-KR',
+                          {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          }
+                        )}{' '}
+                        -{' '}
+                        {new Date(selectedSlot.endTime).toLocaleTimeString(
+                          'ko-KR',
+                          {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          }
+                        )}
                       </p>
                     </div>
                   </div>
@@ -390,7 +429,11 @@ export default function MeetingRequestPage() {
                 {/* 제출 버튼 */}
                 <Button
                   onClick={handleSubmit}
-                  disabled={!selectedTimeSlot || submitting || Object.keys(timeSlotGroups).length === 0}
+                  disabled={
+                    !selectedTimeSlot ||
+                    submitting ||
+                    Object.keys(timeSlotGroups).length === 0
+                  }
                   className="w-full"
                   size="lg"
                 >

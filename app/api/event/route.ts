@@ -1,13 +1,14 @@
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/config/db";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/config/auth";
+import { getServerSession } from 'next-auth'
+import { NextRequest, NextResponse } from 'next/server'
+
+import { authOptions } from '@/lib/config/auth'
+import { prisma } from '@/lib/config/db'
 
 export async function GET() {
   try {
     // 활성화된 행사 조회 (항상 하나만 존재)
     const event = await prisma.event.findFirst({
-      where: { status: 'ACTIVE' }
+      where: { status: 'ACTIVE' },
     })
 
     if (!event) {
@@ -35,11 +36,11 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { 
-      name, 
-      description, 
-      startDate, 
-      endDate, 
+    const {
+      name,
+      description,
+      startDate,
+      endDate,
       venue,
       headerImage,
       headerText,
@@ -48,11 +49,11 @@ export async function PATCH(req: NextRequest) {
       operationEndTime,
       lunchStartTime,
       lunchEndTime,
-      status 
+      status,
     } = await req.json()
 
     const event = await prisma.event.findFirst({
-      where: { status: { in: ['UPCOMING', 'ACTIVE'] } }
+      where: { status: { in: ['UPCOMING', 'ACTIVE'] } },
     })
 
     if (!event) {
@@ -112,8 +113,8 @@ export async function PATCH(req: NextRequest) {
         operationEndTime,
         lunchStartTime,
         lunchEndTime,
-        status
-      }
+        status,
+      },
     })
 
     return NextResponse.json(updatedEvent)

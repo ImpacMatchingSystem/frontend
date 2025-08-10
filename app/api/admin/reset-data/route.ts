@@ -1,8 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { prisma } from "@/lib/config/db"
-import { authOptions } from '@/lib/config/auth'
+import { NextRequest, NextResponse } from 'next/server'
+
 import bcrypt from 'bcryptjs'
+
+import { authOptions } from '@/lib/config/auth'
+import { prisma } from '@/lib/config/db'
 
 export async function POST(req: NextRequest) {
   try {
@@ -21,11 +23,10 @@ export async function POST(req: NextRequest) {
     // 시드 데이터 재생성
     await createSeedData()
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       message: '테스트 데이터가 초기화되었습니다',
-      success: true 
+      success: true,
     })
-
   } catch (error) {
     console.error('Reset data error:', error)
     return NextResponse.json(
@@ -52,8 +53,8 @@ async function createSeedData() {
       operationEndTime: '18:00',
       lunchStartTime: '12:00',
       lunchEndTime: '13:00',
-      status: 'ACTIVE'
-    }
+      status: 'ACTIVE',
+    },
   })
 
   // 2. 샘플 회사들 생성
@@ -63,20 +64,20 @@ async function createSeedData() {
       email: 'contact@aistartup.com',
       description: '인공지능 기반 솔루션 개발',
       website: 'https://aistartup.com',
-      password: 'company123!'
+      password: 'company123!',
     },
     {
       name: 'Green Tech',
       email: 'info@greentech.com',
       description: '친환경 에너지 솔루션',
       website: 'https://greentech.com',
-      password: 'company123!'
-    }
+      password: 'company123!',
+    },
   ]
 
   for (const companyData of companies) {
     const companyPassword = await bcrypt.hash(companyData.password, 12)
-    
+
     const company = await prisma.user.create({
       data: {
         name: companyData.name,
@@ -84,8 +85,8 @@ async function createSeedData() {
         description: companyData.description,
         website: companyData.website,
         password: companyPassword,
-        role: 'COMPANY'
-      }
+        role: 'COMPANY',
+      },
     })
 
     // 각 회사마다 샘플 시간대 생성
@@ -96,33 +97,33 @@ async function createSeedData() {
           userId: company.id,
           startTime: new Date(baseDate.getTime() + hour * 60 * 60 * 1000),
           endTime: new Date(baseDate.getTime() + (hour + 1) * 60 * 60 * 1000),
-          isBooked: false
-        }
+          isBooked: false,
+        },
       })
     }
   }
 
   // 3. 샘플 바이어 계정들 생성
   const buyers = [
-    { 
-      name: '김투자', 
+    {
+      name: '김투자',
       email: 'investor1@example.com',
       description: '시드 투자 전문',
       website: 'https://vcfund.com',
-      password: 'buyer123!'
+      password: 'buyer123!',
     },
-    { 
-      name: '박벤처', 
+    {
+      name: '박벤처',
       email: 'investor2@example.com',
       description: '스타트업 엑셀러레이터',
       website: 'https://accelerator.com',
-      password: 'buyer123!'
-    }
+      password: 'buyer123!',
+    },
   ]
 
   for (const buyerData of buyers) {
     const buyerPassword = await bcrypt.hash(buyerData.password, 12)
-    
+
     await prisma.user.create({
       data: {
         name: buyerData.name,
@@ -130,8 +131,8 @@ async function createSeedData() {
         description: buyerData.description,
         website: buyerData.website,
         password: buyerPassword,
-        role: 'BUYER'
-      }
+        role: 'BUYER',
+      },
     })
   }
 }

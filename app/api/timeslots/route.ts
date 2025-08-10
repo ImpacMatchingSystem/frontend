@@ -1,7 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { prisma } from '@/lib/config/db'
+import { NextRequest, NextResponse } from 'next/server'
+
 import { authOptions } from '@/lib/config/auth'
+import { prisma } from '@/lib/config/db'
 
 export async function POST(req: NextRequest) {
   try {
@@ -15,7 +16,7 @@ export async function POST(req: NextRequest) {
     // 사용자의 회사 정보 확인
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
-      include: { company: true }
+      include: { company: true },
     })
 
     if (!user?.companyId) {
@@ -26,8 +27,8 @@ export async function POST(req: NextRequest) {
       data: {
         companyId: user.companyId,
         startTime: new Date(startTime),
-        endTime: new Date(endTime)
-      }
+        endTime: new Date(endTime),
+      },
     })
 
     return NextResponse.json(timeSlot)

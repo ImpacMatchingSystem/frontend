@@ -1,9 +1,9 @@
 'use client'
 
-import Link from 'next/link'
-import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
 
 import { Calendar, Clock, Users, CheckCircle, AlertCircle } from 'lucide-react'
 
@@ -92,7 +92,7 @@ export default function CompanyDashboard() {
 
     try {
       const response = await fetch('/api/meetings')
-      
+
       if (!response.ok) {
         throw new Error('미팅 목록 조회 실패')
       }
@@ -105,18 +105,20 @@ export default function CompanyDashboard() {
       const stats = {
         totalMeetings: meetings.length,
         pendingMeetings: meetings.filter(m => m.status === 'PENDING').length,
-        confirmedMeetings: meetings.filter(m => m.status === 'CONFIRMED').length,
-        todayMeetings: meetings.filter(m => 
-          new Date(m.timeSlot.startTime).toDateString() === today
+        confirmedMeetings: meetings.filter(m => m.status === 'CONFIRMED')
+          .length,
+        todayMeetings: meetings.filter(
+          m => new Date(m.timeSlot.startTime).toDateString() === today
         ).length,
       }
 
-      const sortedMeetings = meetings.sort((a: any, b: any) => 
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      const sortedMeetings = meetings.sort(
+        (a: any, b: any) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       )
 
-      const todayMeetingsList = meetings.filter(m => 
-        new Date(m.timeSlot.startTime).toDateString() === today
+      const todayMeetingsList = meetings.filter(
+        m => new Date(m.timeSlot.startTime).toDateString() === today
       )
 
       setStats(stats)
@@ -171,7 +173,10 @@ export default function CompanyDashboard() {
     switch (status) {
       case 'PENDING':
         return (
-          <Badge variant="outline" className="text-yellow-600 border-yellow-600">
+          <Badge
+            variant="outline"
+            className="text-yellow-600 border-yellow-600"
+          >
             대기중
           </Badge>
         )
@@ -229,7 +234,9 @@ export default function CompanyDashboard() {
 
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">기업 대시보드</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            기업 대시보드
+          </h1>
           <p className="text-gray-600">
             안녕하세요, {session.user.name}님! 오늘의 미팅 현황을 확인해보세요.
           </p>
@@ -315,7 +322,8 @@ export default function CompanyDashboard() {
                       <div>
                         <p className="font-medium">{meeting.buyer.name}</p>
                         <p className="text-sm text-gray-600">
-                          {formatTime(meeting.timeSlot.startTime)} - {formatTime(meeting.timeSlot.endTime)}
+                          {formatTime(meeting.timeSlot.startTime)} -{' '}
+                          {formatTime(meeting.timeSlot.endTime)}
                         </p>
                       </div>
                       {getStatusBadge(meeting.status)}
@@ -356,7 +364,9 @@ export default function CompanyDashboard() {
                             {meeting.buyer.email}
                           </p>
                           <p className="text-sm text-gray-500">
-                            {new Date(meeting.timeSlot.startTime).toLocaleDateString('ko-KR')}{' '}
+                            {new Date(
+                              meeting.timeSlot.startTime
+                            ).toLocaleDateString('ko-KR')}{' '}
                             {formatTime(meeting.timeSlot.startTime)}
                           </p>
                         </div>

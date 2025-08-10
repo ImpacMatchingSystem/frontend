@@ -1,8 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { prisma } from "@/lib/config/db";
-import { authOptions } from "@/lib/config/auth";
-import { notifyMeetingRequest } from "@/lib/application/notification";
+import { getServerSession } from 'next-auth/next'
+import { NextRequest, NextResponse } from 'next/server'
+
+import { notifyMeetingRequest } from '@/lib/application/notification'
+import { authOptions } from '@/lib/config/auth'
+import { prisma } from '@/lib/config/db'
 
 export async function POST(req: NextRequest) {
   try {
@@ -13,13 +14,13 @@ export async function POST(req: NextRequest) {
 
     const { timeSlotId, message } = await req.json()
 
-    const meeting = await prisma.$transaction(async (tx:any) => {
+    const meeting = await prisma.$transaction(async (tx: any) => {
       const timeSlot = await tx.timeSlot.findUnique({
         where: { id: timeSlotId },
-        include: { 
+        include: {
           user: true,
-          meeting: true 
-        }
+          meeting: true,
+        },
       })
 
       if (!timeSlot) {
@@ -36,18 +37,18 @@ export async function POST(req: NextRequest) {
           buyerId: (session.user as any).id,
           timeSlotId: timeSlotId,
           message: message || '',
-          status: 'PENDING'
+          status: 'PENDING',
         },
         include: {
           company: true,
           buyer: true,
-          timeSlot: true
-        }
+          timeSlot: true,
+        },
       })
 
       await tx.timeSlot.update({
         where: { id: timeSlotId },
-        data: { isBooked: true }
+        data: { isBooked: true },
       })
 
       return newMeeting
@@ -92,11 +93,11 @@ export async function GET(req: NextRequest) {
       include: {
         company: true,
         buyer: true,
-        timeSlot: true
+        timeSlot: true,
       },
       orderBy: {
-        createdAt: 'desc'
-      }
+        createdAt: 'desc',
+      },
     })
 
     return NextResponse.json(meetings)

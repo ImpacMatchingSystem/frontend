@@ -1,5 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/config/db";
+import { NextRequest, NextResponse } from 'next/server'
+
+import { prisma } from '@/lib/config/db'
 
 export async function GET(req: NextRequest) {
   try {
@@ -7,13 +8,13 @@ export async function GET(req: NextRequest) {
     const search = searchParams.get('search')
 
     let whereClause: any = {
-      role: 'COMPANY'
+      role: 'COMPANY',
     }
 
     if (search) {
       whereClause.OR = [
         { name: { contains: search, mode: 'insensitive' } },
-        { description: { contains: search, mode: 'insensitive' } }
+        { description: { contains: search, mode: 'insensitive' } },
       ]
     }
 
@@ -24,26 +25,26 @@ export async function GET(req: NextRequest) {
           where: {
             isBooked: false,
             startTime: {
-              gte: new Date()
-            }
+              gte: new Date(),
+            },
           },
           orderBy: {
-            startTime: 'asc'
-          }
+            startTime: 'asc',
+          },
         },
         _count: {
           select: {
             companyMeetings: {
               where: {
-                status: 'CONFIRMED'
-              }
-            }
-          }
-        }
+                status: 'CONFIRMED',
+              },
+            },
+          },
+        },
       },
       orderBy: {
-        name: 'asc'
-      }
+        name: 'asc',
+      },
     })
 
     return NextResponse.json(companies)

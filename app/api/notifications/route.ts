@@ -1,7 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { prisma } from "@/lib/config/db";
-import { authOptions } from "@/lib/config/auth";
+import { getServerSession } from 'next-auth'
+import { NextRequest, NextResponse } from 'next/server'
+
+import { authOptions } from '@/lib/config/auth'
+import { prisma } from '@/lib/config/db'
 
 export async function GET(req: NextRequest) {
   try {
@@ -14,7 +15,7 @@ export async function GET(req: NextRequest) {
     const unreadOnly = searchParams.get('unread') === 'true'
 
     let whereClause: any = {
-      userId: (session.user as any).id
+      userId: (session.user as any).id,
     }
 
     if (unreadOnly) {
@@ -24,9 +25,9 @@ export async function GET(req: NextRequest) {
     const notifications = await prisma.notification.findMany({
       where: whereClause,
       orderBy: {
-        createdAt: 'desc'
+        createdAt: 'desc',
       },
-      take: 50
+      take: 50,
     })
 
     return NextResponse.json(notifications)
@@ -52,21 +53,21 @@ export async function PATCH(req: NextRequest) {
       await prisma.notification.updateMany({
         where: {
           userId: (session.user as any).id,
-          isRead: false
+          isRead: false,
         },
         data: {
-          isRead: true
-        }
+          isRead: true,
+        },
       })
     } else if (notificationIds && Array.isArray(notificationIds)) {
       await prisma.notification.updateMany({
         where: {
           id: { in: notificationIds },
-          userId: (session.user as any).id
+          userId: (session.user as any).id,
         },
         data: {
-          isRead: true
-        }
+          isRead: true,
+        },
       })
     }
 

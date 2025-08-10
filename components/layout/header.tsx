@@ -1,9 +1,9 @@
 'use client'
 
+import { useSession, signOut } from 'next-auth/react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { useSession, signOut } from 'next-auth/react'
 
 import { Building2, Menu, X, User, LogOut } from 'lucide-react'
 
@@ -80,7 +80,7 @@ export function Header() {
             >
               기업 목록
             </Link>
-            
+
             {status === 'loading' ? (
               <div className="flex items-center space-x-2">
                 <div className="w-6 h-6 border-2 border-gray-300 border-t-transparent rounded-full animate-spin"></div>
@@ -152,7 +152,7 @@ export function Header() {
               >
                 기업 목록
               </Link>
-              
+
               {status === 'loading' ? (
                 <div className="flex items-center space-x-2 px-3 py-2">
                   <div className="w-4 h-4 border-2 border-gray-300 border-t-transparent rounded-full animate-spin"></div>
