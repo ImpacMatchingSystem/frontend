@@ -6,7 +6,6 @@ import { useState, useEffect } from 'react'
 import { Search, Grid, List, ExternalLink, Clock } from 'lucide-react'
 
 import { Footer } from '@/components/layout/footer'
-import { Header } from '@/components/layout/header'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -19,6 +18,7 @@ import {
 import { Input } from '@/components/ui/input'
 
 import { useToast } from '@/hooks/use-toast'
+import { BuyerHeader } from '@/components/layout/buyer-header'
 
 interface Company {
   id: string
@@ -116,7 +116,7 @@ export default function CompaniesPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Header />
+        <BuyerHeader />
         <div className="container mx-auto px-4 py-8">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
@@ -129,7 +129,7 @@ export default function CompaniesPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header />
+      <BuyerHeader />
 
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
