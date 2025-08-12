@@ -16,7 +16,6 @@ import {
   Eye,
 } from 'lucide-react'
 
-import { Header } from '@/components/layout/header'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -39,6 +38,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 import { useToast } from '@/hooks/use-toast'
+import { CompanyHeader } from '@/components/layout/company-header'
 
 interface MeetingWithDetails {
   id: string
@@ -222,7 +222,7 @@ export default function CompanyMeetingsPage() {
   if (status === 'loading' || loading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Header />
+        <CompanyHeader />
         <div className="container mx-auto px-4 py-8">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
@@ -239,7 +239,7 @@ export default function CompanyMeetingsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header />
+      <CompanyHeader />
 
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
