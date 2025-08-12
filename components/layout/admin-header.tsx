@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
 import { useAuthStore } from '@/store/auth-store'
-import { Shield, LogOut, BarChart3, Users, Calendar, User } from 'lucide-react'
+import { Shield, LogOut, BarChart3, Users, Calendar, User, CalendarRange, Building2 } from 'lucide-react'
 
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
@@ -65,9 +65,9 @@ export function AdminHeader() {
   return (
     <header className="border-b bg-white">
       <div className="container bg-white mx-auto px-4 h-16 flex items-center justify-between">
-        <Link href="/admin/dashboard" className="flex items-center space-x-2">
+        <Link href="/" className="flex items-center space-x-2">
           <Shield className="h-8 w-8 text-primary" />
-          <span className="text-xl font-bold">ImpacMatching Admin</span>
+          <span className="text-xl font-bold">ImpacMatching</span>
         </Link>
 
         <nav className="hidden md:flex items-center space-x-6 bg-white">
@@ -124,6 +124,18 @@ export function AdminHeader() {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
+                  <Link href="/admin/events">
+                    <CalendarRange className="mr-2 h-4 w-4" />
+                    행사 관리
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/admin/companies">
+                    <Building2 className="mr-2 h-4 w-4" />
+                    기업 관리
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
                   <Link href="/admin/buyers">
                     <Users className="mr-2 h-4 w-4" />
                     바이어 관리
@@ -134,11 +146,6 @@ export function AdminHeader() {
                     <Calendar className="mr-2 h-4 w-4" />
                     미팅 현황
                   </Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleSignOut}>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  로그아웃
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
