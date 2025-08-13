@@ -1,9 +1,9 @@
 'use client'
 
 import { useSession } from 'next-auth/react'
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 
-import { Calendar, Save, Settings } from 'lucide-react'
+import { Calendar, Save, Settings, Upload, X, Image } from 'lucide-react'
 
 import { AdminHeader } from '@/components/layout/admin-header'
 import { Button } from '@/components/ui/button'
@@ -29,6 +29,7 @@ interface EventSettings {
   venue?: string
   headerImage?: string
   headerText?: string
+  headerBackgroundColor?: string
   meetingDuration: number
   operationStartTime: string
   operationEndTime: string
@@ -48,6 +49,7 @@ export default function EventSettingsPage() {
     venue: '',
     headerImage: '',
     headerText: '',
+    headerBackgroundColor: '#f3f4f6',
     meetingDuration: 30,
     operationStartTime: '09:00',
     operationEndTime: '18:00',
@@ -57,6 +59,8 @@ export default function EventSettingsPage() {
   })
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const { toast } = useToast()
 
@@ -85,6 +89,7 @@ export default function EventSettingsPage() {
           venue: data.venue || '',
           headerImage: data.headerImage || '',
           headerText: data.headerText || '',
+          headerBackgroundColor: data.headerBackgroundColor || '#f3f4f6',
           meetingDuration: data.meetingDuration || 30,
           operationStartTime: data.operationStartTime || '09:00',
           operationEndTime: data.operationEndTime || '18:00',
@@ -93,7 +98,6 @@ export default function EventSettingsPage() {
           status: data.status || 'ACTIVE',
         })
       } else if (response.status === 404) {
-        // 행사가 없는 경우 - 기본값 유지
         toast({
           title: '알림',
           description:
@@ -111,6 +115,129 @@ export default function EventSettingsPage() {
       })
     } finally {
       setLoading(false)
+    }
+  }
+
+  // 파일 업로드 함수 개선
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+  
+    // 파일 크기 검증 (2MB 제한)
+    if (file.size > 2 * 1024 * 1024) {
+      toast({
+        title: '파일 크기 초과',
+        description: '이미지 크기는 2MB 이하로 제한됩니다.',
+        variant: 'destructive',
+      })
+      return
+    }
+  
+    // 이미지 크기 검증 (HTMLImageElement 명시적 사용)
+    const img = new window.Image() // 또는 document.createElement('img')
+    img.onload = async () => {
+      // 최소 크기 체크
+      if (img.width < 1200 || img.height < 400) {
+        toast({
+          title: '이미지 크기 부족',
+          description: '최소 1200x400px 이상의 이미지를 사용해주세요.',
+          variant: 'destructive',
+        })
+        URL.revokeObjectURL(img.src) // 메모리 정리
+        return
+      }
+    
+      // 비율 체크 (너무 세로로 긴 이미지 방지)
+      const ratio = img.width / img.height
+      if (ratio < 2) {
+        toast({
+          title: '이미지 비율 권장사항',
+          description: '가로:세로 비율이 2:1 이상인 이미지를 권장합니다.',
+          variant: 'default',
+        })
+      }
+    
+      // 업로드 진행
+      await uploadFile()
+      URL.revokeObjectURL(img.src) // 메모리 정리
+    }
+  
+    img.onerror = () => {
+      toast({
+        title: '이미지 오류',
+        description: '올바른 이미지 파일이 아닙니다.',
+        variant: 'destructive',
+      })
+      URL.revokeObjectURL(img.src) // 메모리 정리
+    }
+  
+    img.src = URL.createObjectURL(file)
+  
+    const uploadFile = async () => {
+      setUploading(true)
+      try {
+        const formData = new FormData()
+        formData.append('file', file)
+      
+        const response = await fetch('/api/upload/header', {
+          method: 'POST',
+          body: formData,
+        })
+      
+        if (!response.ok) {
+          const error = await response.json()
+          throw new Error(error.error || '파일 업로드 실패')
+        }
+      
+        const result = await response.json()
+        setEventData(prev => ({
+          ...prev,
+          headerImage: result.url,
+        }))
+      
+        toast({
+          title: '업로드 완료',
+          description: `헤더 이미지가 성공적으로 업로드되었습니다. (${img.width}x${img.height}px)`,
+        })
+      } catch (error) {
+        console.error('File upload error:', error)
+        toast({
+          title: '업로드 실패',
+          description: '파일 업로드 중 오류가 발생했습니다.',
+          variant: 'destructive',
+        })
+      } finally {
+        setUploading(false)
+        if (fileInputRef.current) {
+          fileInputRef.current.value = ''
+        }
+      }
+    }
+  }
+
+  const handleRemoveImage = async () => {
+    if (!eventData.headerImage) return
+
+    try {
+      // 파일명 추출
+      const filename = eventData.headerImage.split('/').pop()
+      if (filename) {
+        await fetch(`/api/upload/header?filename=${filename}`, {
+          method: 'DELETE',
+        })
+      }
+
+      setEventData(prev => ({
+        ...prev,
+        headerImage: '',
+      }))
+    } catch (error) {
+      console.error('File deletion error:', error)
+      toast({
+        title: '삭제 실패',
+        description: '이미지 삭제 중 오류가 발생했습니다.',
+        variant: 'destructive',
+      })
     }
   }
 
@@ -134,6 +261,7 @@ export default function EventSettingsPage() {
         venue: eventData.venue || null,
         headerImage: eventData.headerImage || null,
         headerText: eventData.headerText || null,
+        headerBackgroundColor: eventData.headerBackgroundColor || null,
         meetingDuration: eventData.meetingDuration,
         operationStartTime: eventData.operationStartTime,
         operationEndTime: eventData.operationEndTime,
@@ -157,7 +285,6 @@ export default function EventSettingsPage() {
 
       const updatedEvent = await response.json()
 
-      // 업데이트된 데이터로 상태 갱신
       setEventData(prev => ({
         ...prev,
         id: updatedEvent.id,
@@ -295,52 +422,149 @@ export default function EventSettingsPage() {
           {/* 헤더 설정 */}
           <Card>
             <CardHeader>
-              <CardTitle>헤더 설정</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <Image className="h-5 w-5" />
+                헤더 설정
+              </CardTitle>
               <CardDescription>
-                행사 페이지 상단에 표시될 이미지와 텍스트를 설정합니다.
+                메인 페이지 상단에 표시될 헤더를 설정합니다. 이미지를 업로드하면 텍스트는 무시됩니다.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="headerText">헤더 텍스트</Label>
-                <Input
-                  id="headerText"
-                  value={eventData.headerText}
-                  onChange={e =>
-                    handleInputChange('headerText', e.target.value)
-                  }
-                  placeholder="예: 혁신의 미래를 만나보세요"
+            <CardContent className="space-y-6">
+              {/* 이미지 업로드 섹션 */}
+              <div className="space-y-4">
+                <Label>헤더 이미지</Label>
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+    <h4 className="font-medium text-blue-900 mb-2">📐 이미지 가이드라인</h4>
+    <ul className="text-sm text-blue-800 space-y-1">
+      <li>• <strong>권장 사이즈:</strong> 1920 x 600px (16:5 비율)</li>
+      <li>• <strong>최소 사이즈:</strong> 1200 x 400px</li>
+      <li>• <strong>최대 용량:</strong> 2MB</li>
+      <li>• <strong>지원 형식:</strong> JPG, PNG, WebP, GIF</li>
+      <li>• <strong>팁:</strong> 텍스트 오버레이를 고려해 단순한 배경 권장</li>
+    </ul>
+  </div>
+
+                {eventData.headerImage ? (
+                  <div className="space-y-4">
+                    <div className="relative">
+                      <img
+                        src={eventData.headerImage}
+                        alt="헤더 이미지"
+                        className="w-full h-48 object-cover rounded-lg border"
+                      />
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="sm"
+                        className="absolute top-2 right-2"
+                        onClick={handleRemoveImage}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={uploading}
+                    >
+                      <Upload className="mr-2 h-4 w-4" />
+                      이미지 변경
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+                    <Image className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-600 mb-2">
+                      <strong>1920 x 600px</strong> 사이즈의 헤더 이미지를 업로드하세요
+                    </p>
+                    <p className="text-sm text-gray-500 mb-4">
+                      가로:세로 = 16:5 비율 권장
+                    </p>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={uploading}
+                    >
+                      <Upload className="mr-2 h-4 w-4" />
+                      {uploading ? '업로드 중...' : '이미지 선택'}
+                    </Button>
+                  </div>
+                )}
+
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileUpload}
+                  className="hidden"
                 />
+                
+                <p className="text-sm text-gray-500">
+                  최대 5MB, JPG, PNG, GIF, WebP 형식만 지원됩니다.
+                </p>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="headerImage">헤더 이미지 URL</Label>
-                <Input
-                  id="headerImage"
-                  type="url"
-                  value={eventData.headerImage}
-                  onChange={e =>
-                    handleInputChange('headerImage', e.target.value)
-                  }
-                  placeholder="https://example.com/header-image.jpg"
-                />
-              </div>
-
-              {eventData.headerImage && (
-                <div className="mt-4">
-                  <Label className="text-sm font-medium text-gray-600">
-                    미리보기
+              {/* 텍스트 헤더 섹션 (이미지가 없을 때만 활성화) */}
+              {!eventData.headerImage && (
+                <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
+                  <Label className="text-sm font-medium">
+                    텍스트 헤더 (이미지가 없을 때 표시됨)
                   </Label>
-                  <div className="mt-2 aspect-video max-w-md bg-gray-100 rounded-lg overflow-hidden">
-                    <img
-                      src={eventData.headerImage}
-                      alt="헤더 이미지 미리보기"
-                      className="w-full h-full object-cover"
-                      onError={e => {
-                        e.currentTarget.style.display = 'none'
-                      }}
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="headerText">헤더 텍스트</Label>
+                    <Input
+                      id="headerText"
+                      value={eventData.headerText}
+                      onChange={e =>
+                        handleInputChange('headerText', e.target.value)
+                      }
+                      placeholder="예: 혁신의 미래를 만나보세요"
                     />
                   </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="headerBackgroundColor">배경색</Label>
+                    <div className="flex gap-2 items-center">
+                      <input
+                        id="headerBackgroundColor"
+                        type="color"
+                        value={eventData.headerBackgroundColor}
+                        onChange={e =>
+                          handleInputChange('headerBackgroundColor', e.target.value)
+                        }
+                        className="w-12 h-10 rounded border"
+                      />
+                      <Input
+                        value={eventData.headerBackgroundColor}
+                        onChange={e =>
+                          handleInputChange('headerBackgroundColor', e.target.value)
+                        }
+                        placeholder="#f3f4f6"
+                        className="flex-1"
+                      />
+                    </div>
+                  </div>
+
+                  {/* 미리보기 */}
+                  {eventData.headerText && (
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium text-gray-600">
+                        미리보기
+                      </Label>
+                      <div
+                        className="p-8 rounded-lg text-center"
+                        style={{ backgroundColor: eventData.headerBackgroundColor }}
+                      >
+                        <h2 className="text-2xl font-bold text-gray-900">
+                          {eventData.headerText}
+                        </h2>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </CardContent>
@@ -431,30 +655,6 @@ export default function EventSettingsPage() {
               </div>
             </CardContent>
           </Card>
-
-          {/* 행사 상태
-          <Card>
-            <CardHeader>
-              <CardTitle>행사 상태</CardTitle>
-              <CardDescription>현재 행사의 상태를 설정합니다.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <Label htmlFor="status">상태</Label>
-                <select
-                  id="status"
-                  value={eventData.status}
-                  onChange={e => handleInputChange('status', e.target.value)}
-                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
-                >
-                  <option value="UPCOMING">준비중</option>
-                  <option value="ACTIVE">진행중</option>
-                  <option value="ENDED">종료됨</option>
-                </select>
-              </div>
-            </CardContent>
-          </Card>
-          */}
 
           {/* 저장 버튼 */}
           <div className="flex justify-end">

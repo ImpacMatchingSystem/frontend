@@ -16,7 +16,6 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 
-// 새로운 타입 정의 (Prisma 스키마 기반)
 interface Event {
   id: string
   name: string
@@ -26,6 +25,7 @@ interface Event {
   venue: string | null
   headerImage: string | null
   headerText: string | null
+  headerBackgroundColor: string | null
   meetingDuration: number
   operationStartTime: string
   operationEndTime: string
@@ -44,7 +44,6 @@ export default function HomePage() {
 
   const fetchActiveEvent = async () => {
     try {
-      // 새로운 API 엔드포인트 호출
       const response = await fetch('/api/event')
 
       if (!response.ok) {
@@ -64,12 +63,13 @@ export default function HomePage() {
     const options: Intl.DateTimeFormatOptions = { month: 'numeric', day: 'numeric' };
     const start = new Date(startDate).toLocaleDateString('ko-KR', options);
     const end = new Date(endDate).toLocaleDateString('ko-KR', options);
-    return `${start.slice(0,5)} ~ ${end.slice(0,5)}`;
+    return `${start.replace(/\.$/, '')} ~ ${end.replace(/\.$/, '')}`;
   };
 
   if (loading) {
     return (
       <div className="min-h-screen bg-white">
+        {/* Custom Header Section - 로딩 중에도 표시 */}
         <Header />
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="text-center">
@@ -85,14 +85,43 @@ export default function HomePage() {
     <div className="min-h-screen bg-white">
       <Header />
 
+      {/* Custom Header Section - Header 컴포넌트 바로 아래에 배치 */}
+      {event && (event.headerImage || event.headerText) && (
+        <section className="relative">
+          {event.headerImage ? (
+            // 이미지 헤더
+            <div className="w-full">
+              <img
+                src={event.headerImage}
+                alt={event.name}
+                className="w-full h-64 md:h-80 lg:h-96 object-cover"
+                onError={(e) => {
+                  console.error('Header image load error:', event.headerImage);
+                  // 이미지 로드 실패 시 해당 요소 숨김
+                  e.currentTarget.parentElement!.style.display = 'none';
+                }}
+              />
+            </div>
+          ) : event.headerText ? (
+            // 텍스트 헤더
+            <div
+              className="w-full py-8 md:py-12"
+              style={{ 
+                backgroundColor: event.headerBackgroundColor || '#f3f4f6' 
+              }}
+            >
+              <div className="container mx-auto px-4 text-center">
+                <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900">
+                  {event.headerText}
+                </h2>
+              </div>
+            </div>
+          ) : null}
+        </section>
+      )}
+
       {/* Hero Section */}
-      <section className="relative py-20 px-4 bg-gradient-to-br from-blue-50 to-indigo-100">
-        {event?.headerImage && (
-          <div
-            className="absolute inset-0 bg-cover bg-center opacity-20"
-            style={{ backgroundImage: `url(${event.headerImage})` }}
-          />
-        )}
+      <section className="relative pt-20 pb-10 px-4 bg-gradient-to-br from-blue-50 to-indigo-100">
         <div className="container mx-auto text-center relative z-10">
           <div className="mb-6">
             {event && (
@@ -122,21 +151,10 @@ export default function HomePage() {
             <span className="text-primary text-4xl">비즈니스 매칭 서비스</span>
           </h1>
 
-          {/* 헤더 텍스트 또는 기본 설명 */}
           <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-            {event?.headerText ||
-              event?.description ||
+            {event?.description ||
               '기업과 바이어를 효율적으로 연결하여 새로운 비즈니스 기회를 창출하세요. 간편한 예약 시스템으로 원하는 시간에 미팅을 잡을 수 있습니다.'}
           </p>
-
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" asChild>
-              <Link href="/dashboard/buyer/companies">
-                미팅 신청하기
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Link>
-            </Button>
-          </div>
 
           {event && (
             <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
@@ -170,6 +188,15 @@ export default function HomePage() {
             </div>
           )}
         </div>
+                  <div className="flex flex-col sm:flex-row gap-4 justify-center mt-5">
+            <Button size="lg" asChild>
+              <Link href="/dashboard/buyer/companies">
+                미팅 신청하기
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Link>
+            </Button>
+          </div>
+
       </section>
 
       {/* Features Section */}
