@@ -103,9 +103,8 @@ export function ExcelUpload({ type, onUploadComplete }: ExcelUploadProps) {
         })
         return
       }
-      */
 
-      const fileName = selectedFile.name.toLowerCase();
+      // 파일 이름 체크
       if (!fileName.endsWith('.xlsx') && !fileName.endsWith('.xls')) {
         toast({
           title: '파일 형식 오류',

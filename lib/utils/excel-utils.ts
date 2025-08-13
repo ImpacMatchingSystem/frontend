@@ -187,10 +187,6 @@ export const exportBuyersToExcel = (data: any[], filename: string) => {
   XLSX.writeFile(workbook, filename);
 };
 
- * JSON 데이터를 Excel 파일로 내보내는 함수
- * @param data - 내보낼 데이터 배열 (객체 형태)
- * @param filename - 다운로드될 파일 이름
- */
 export const exportCompaniesToExcel = (data: any[], filename: string) => {
   // 데이터 형식 변환 (Excel 헤더를 한글로, 필요한 데이터만 선택)
   const formattedData = data.map(company => ({
