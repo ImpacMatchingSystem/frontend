@@ -14,7 +14,7 @@ import {
   Globe,
   Users,
   Calendar,
-  Download
+  Download,
 } from 'lucide-react'
 
 import { ExcelUpload } from '@/components/admin/excel-upload'
@@ -46,7 +46,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
 import { useToast } from '@/hooks/use-toast'
-import {exportCompaniesToExcel} from "@/lib/utils/excel-utils";
+
+import { exportCompaniesToExcel } from '@/lib/utils/excel-utils'
 
 // 새로운 타입 정의 (Prisma 스키마 기반)
 interface Company {
@@ -255,19 +256,19 @@ export default function AdminCompaniesPage() {
         title: '내보낼 데이터 없음',
         description: '현재 목록에 기업이 없습니다.',
         variant: 'destructive',
-      });
-      return;
+      })
+      return
     }
 
     // 파일 이름에 오늘 날짜를 추가하여 다운로드합니다.
-    const fileName = `기업목록_${new Date().toISOString().split('T')[0]}.xlsx`;
-    exportCompaniesToExcel(filteredCompanies, fileName);
+    const fileName = `기업목록_${new Date().toISOString().split('T')[0]}.xlsx`
+    exportCompaniesToExcel(filteredCompanies, fileName)
 
     toast({
       title: '다운로드 시작',
       description: '기업 목록을 Excel 파일로 다운로드합니다.',
-    });
-  };
+    })
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">

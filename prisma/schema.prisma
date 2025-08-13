@@ -36,8 +36,11 @@ model Event {
   venue           String?
   
   // 헤더 설정
-  headerImage     String?   // 이미지 URL
-  headerText      String?   // 헤더 텍스트
+  headerImage            String?   // 이미지 URL
+  headerText             String?   // 헤더 텍스트
+  headerBackgroundColor  String?   // 헤더 배경색
+  headerTextColor        String?   // 헤더 텍스트 색상 (새로 추가)
+  headerVisible          Boolean   @default(true) // 헤더 표시 여부 (새로 추가)
   
   // 미팅 시간 설정
   meetingDuration Int       @default(30)  // 미팅 시간 (분)
