@@ -14,6 +14,7 @@ import {
   Globe,
   Users,
   Calendar,
+  Download
 } from 'lucide-react'
 
 import { ExcelUpload } from '@/components/admin/excel-upload'
@@ -45,6 +46,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
 import { useToast } from '@/hooks/use-toast'
+import {exportCompaniesToExcel} from "@/lib/utils/excel-utils";
 
 // 새로운 타입 정의 (Prisma 스키마 기반)
 interface Company {
@@ -246,6 +248,27 @@ export default function AdminCompaniesPage() {
     )
   }
 
+  // Excel 다운로드 핸들러 함수 추가
+  const handleExport = () => {
+    if (filteredCompanies.length === 0) {
+      toast({
+        title: '내보낼 데이터 없음',
+        description: '현재 목록에 기업이 없습니다.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // 파일 이름에 오늘 날짜를 추가하여 다운로드합니다.
+    const fileName = `기업목록_${new Date().toISOString().split('T')[0]}.xlsx`;
+    exportCompaniesToExcel(filteredCompanies, fileName);
+
+    toast({
+      title: '다운로드 시작',
+      description: '기업 목록을 Excel 파일로 다운로드합니다.',
+    });
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <AdminHeader />
@@ -337,7 +360,7 @@ export default function AdminCompaniesPage() {
         </Card>
 
         {/* 통계 카드 */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">총 기업 수</CardTitle>
@@ -347,39 +370,6 @@ export default function AdminCompaniesPage() {
               <div className="text-2xl font-bold">{companies.length}</div>
             </CardContent>
           </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">활성 기업</CardTitle>
-              <Building2 className="h-4 w-4 text-green-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-600">
-                {
-                  companies.filter(c => c._count && c._count.timeSlots > 0)
-                    .length
-                }
-              </div>
-              <p className="text-xs text-muted-foreground">시간대 등록 완료</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">총 미팅</CardTitle>
-              <Calendar className="h-4 w-4 text-blue-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-blue-600">
-                {companies.reduce(
-                  (sum, c) => sum + (c._count?.companyMeetings || 0),
-                  0
-                )}
-              </div>
-              <p className="text-xs text-muted-foreground">확정된 미팅</p>
-            </CardContent>
-          </Card>
-
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">검색 결과</CardTitle>
@@ -396,10 +386,18 @@ export default function AdminCompaniesPage() {
         {/* 기업 목록 */}
         <Card>
           <CardHeader>
-            <CardTitle>기업 목록</CardTitle>
-            <CardDescription>
-              등록된 기업들의 상세 정보를 확인하고 관리하세요.
-            </CardDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>기업 목록</CardTitle>
+                <CardDescription>
+                  등록된 기업들의 상세 정보를 확인하고 관리하세요.
+                </CardDescription>
+              </div>
+              <Button variant="outline" onClick={handleExport}>
+                <Download className="mr-2 h-4 w-4" />
+                Excel 다운로드
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
             {filteredCompanies.length === 0 ? (
