@@ -165,3 +165,24 @@ export const normalizeUrl = (url: string): string => {
 
   return `https://${trimmed}`
 }
+
+/**
+ * 바이어 데이터를 Excel 파일로 내보내는 함수
+ * @param data - 내보낼 바이어 데이터 배열
+ * @param filename - 다운로드될 파일 이름
+ */
+export const exportBuyersToExcel = (data: any[], filename: string) => {
+  const formattedData = data.map(buyer => ({
+    '바이어명': buyer.name,
+    '이메일': buyer.email,
+    '웹사이트': buyer.website || '',
+    '소개': buyer.description || '',
+    '총 미팅 수': buyer._count?.buyerMeetings || 0,
+    '등록일': new Date(buyer.createdAt).toLocaleDateString('ko-KR'),
+  }));
+
+  const worksheet = XLSX.utils.json_to_sheet(formattedData);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Buyers');
+  XLSX.writeFile(workbook, filename);
+};
