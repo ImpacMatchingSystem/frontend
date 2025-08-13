@@ -3,10 +3,8 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
-import { useAuthStore } from '@/store/auth-store'
-import { User, LogOut, Calendar, Building2, CalendarCheck } from 'lucide-react'
+import { User, LogOut, Calendar, Building2, Users } from 'lucide-react'
 
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -18,8 +16,8 @@ import {
 import { signOut, useSession } from 'next-auth/react'
 import { useToast } from '@/hooks/use-toast'
 
-export function BuyerHeader() {
- const { data: session, status } = useSession()
+export function CompanyHeader() {
+	const { data: session, status } = useSession()
   const router = useRouter()
   const { toast } = useToast()
 
@@ -55,13 +53,13 @@ export function BuyerHeader() {
             href="/dashboard/buyer"
             className="text-sm font-medium hover:text-primary"
           >
-            신청내역
+            미팅관리
           </Link>
           <Link
             href="/dashboard/buyer/companies"
             className="text-sm font-medium hover:text-primary"
           >
-            참가기업
+            시간설정
           </Link>
         </nav>
 
@@ -81,15 +79,15 @@ export function BuyerHeader() {
               <DropdownMenuContent className="w-56" align="end" forceMount>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
-                  <Link href="/dashboard/buyer">
-                    <CalendarCheck className="mr-2 h-4 w-4" />
-                    신청내역
+                  <Link href="/dashboard/company/meetings">
+                    <Users className="mr-2 h-4 w-4" />
+                    미팅 관리
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href="/dashboard/buyer/companies">
+                  <Link href="/dashboard/company/schedule">
                     <Calendar className="mr-2 h-4 w-4" />
-                    기업 둘러보기
+                    시간 설정
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
@@ -106,9 +104,6 @@ export function BuyerHeader() {
             <div className="flex items-center space-x-2">
               <Button variant="ghost" asChild>
                 <Link href="/login">로그인</Link>
-              </Button>
-              <Button asChild>
-                <Link href="/dashboard/buyer/companies">기업 둘러보기</Link>
               </Button>
             </div>
           )}

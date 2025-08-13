@@ -7,7 +7,6 @@ import { useState, useEffect } from 'react'
 
 import { Calendar, Clock, Users, CheckCircle, AlertCircle } from 'lucide-react'
 
-import { Header } from '@/components/layout/header'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -19,6 +18,7 @@ import {
 } from '@/components/ui/card'
 
 import { useToast } from '@/hooks/use-toast'
+import { CompanyHeader } from '@/components/layout/company-header'
 
 interface DashboardStats {
   totalMeetings: number
@@ -213,7 +213,7 @@ export default function CompanyDashboard() {
   if (status === 'loading' || loading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Header />
+        <CompanyHeader />
         <div className="container mx-auto px-4 py-8">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
@@ -230,7 +230,7 @@ export default function CompanyDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header />
+      <CompanyHeader />
 
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">

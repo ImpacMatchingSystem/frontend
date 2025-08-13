@@ -236,9 +236,9 @@ export default function LoginPage() {
                 <div>
                   <strong>관리자 계정:</strong>
                   <br />
-                  이메일: admin@impacmatching.com
+                  이메일: admin@impac.co.kr
                   <br />
-                  비밀번호: admin123!
+                  비밀번호: admin123
                 </div>
                 <div className="text-xs text-gray-500 mt-2">
                   * 이 계정들은 데이터베이스 시드로 생성됩니다

@@ -14,15 +14,6 @@ body:
     validations:
       required: true
 
-  - type: textarea
-    id: problem-solution
-    attributes:
-      label: '🎯 해결하고 싶은 문제'
-      description: '이 기능이 어떤 문제를 해결하나요?'
-      placeholder: '현재 프로필 사진을 설정할 방법이 없어서 사용자 식별이 어려움'
-    validations:
-      required: true
-
   - type: dropdown
     id: priority
     attributes:
