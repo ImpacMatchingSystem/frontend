@@ -119,10 +119,12 @@ export default function EventSettingsPage() {
   }
 
   // 파일 업로드 함수 개선
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = event.target.files?.[0]
     if (!file) return
-  
+
     // 파일 크기 검증 (2MB 제한)
     if (file.size > 2 * 1024 * 1024) {
       toast({
@@ -132,7 +134,7 @@ export default function EventSettingsPage() {
       })
       return
     }
-  
+
     // 이미지 크기 검증 (HTMLImageElement 명시적 사용)
     const img = new window.Image() // 또는 document.createElement('img')
     img.onload = async () => {
@@ -146,7 +148,7 @@ export default function EventSettingsPage() {
         URL.revokeObjectURL(img.src) // 메모리 정리
         return
       }
-    
+
       // 비율 체크 (너무 세로로 긴 이미지 방지)
       const ratio = img.width / img.height
       if (ratio < 2) {
@@ -156,12 +158,12 @@ export default function EventSettingsPage() {
           variant: 'default',
         })
       }
-    
+
       // 업로드 진행
       await uploadFile()
       URL.revokeObjectURL(img.src) // 메모리 정리
     }
-  
+
     img.onerror = () => {
       toast({
         title: '이미지 오류',
@@ -170,31 +172,31 @@ export default function EventSettingsPage() {
       })
       URL.revokeObjectURL(img.src) // 메모리 정리
     }
-  
+
     img.src = URL.createObjectURL(file)
-  
+
     const uploadFile = async () => {
       setUploading(true)
       try {
         const formData = new FormData()
         formData.append('file', file)
-      
+
         const response = await fetch('/api/upload/header', {
           method: 'POST',
           body: formData,
         })
-      
+
         if (!response.ok) {
           const error = await response.json()
           throw new Error(error.error || '파일 업로드 실패')
         }
-      
+
         const result = await response.json()
         setEventData(prev => ({
           ...prev,
           headerImage: result.url,
         }))
-      
+
         toast({
           title: '업로드 완료',
           description: `헤더 이미지가 성공적으로 업로드되었습니다. (${img.width}x${img.height}px)`,
@@ -427,23 +429,37 @@ export default function EventSettingsPage() {
                 헤더 설정
               </CardTitle>
               <CardDescription>
-                메인 페이지 상단에 표시될 헤더를 설정합니다. 이미지를 업로드하면 텍스트는 무시됩니다.
+                메인 페이지 상단에 표시될 헤더를 설정합니다. 이미지를 업로드하면
+                텍스트는 무시됩니다.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               {/* 이미지 업로드 섹션 */}
               <div className="space-y-4">
                 <Label>헤더 이미지</Label>
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-    <h4 className="font-medium text-blue-900 mb-2">📐 이미지 가이드라인</h4>
-    <ul className="text-sm text-blue-800 space-y-1">
-      <li>• <strong>권장 사이즈:</strong> 1920 x 600px (16:5 비율)</li>
-      <li>• <strong>최소 사이즈:</strong> 1200 x 400px</li>
-      <li>• <strong>최대 용량:</strong> 2MB</li>
-      <li>• <strong>지원 형식:</strong> JPG, PNG, WebP, GIF</li>
-      <li>• <strong>팁:</strong> 텍스트 오버레이를 고려해 단순한 배경 권장</li>
-    </ul>
-  </div>
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <h4 className="font-medium text-blue-900 mb-2">
+                    📐 이미지 가이드라인
+                  </h4>
+                  <ul className="text-sm text-blue-800 space-y-1">
+                    <li>
+                      • <strong>권장 사이즈:</strong> 1920 x 600px (16:5 비율)
+                    </li>
+                    <li>
+                      • <strong>최소 사이즈:</strong> 1200 x 400px
+                    </li>
+                    <li>
+                      • <strong>최대 용량:</strong> 2MB
+                    </li>
+                    <li>
+                      • <strong>지원 형식:</strong> JPG, PNG, WebP, GIF
+                    </li>
+                    <li>
+                      • <strong>팁:</strong> 텍스트 오버레이를 고려해 단순한
+                      배경 권장
+                    </li>
+                  </ul>
+                </div>
 
                 {eventData.headerImage ? (
                   <div className="space-y-4">
@@ -477,7 +493,8 @@ export default function EventSettingsPage() {
                   <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
                     <Image className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                     <p className="text-gray-600 mb-2">
-                      <strong>1920 x 600px</strong> 사이즈의 헤더 이미지를 업로드하세요
+                      <strong>1920 x 600px</strong> 사이즈의 헤더 이미지를
+                      업로드하세요
                     </p>
                     <p className="text-sm text-gray-500 mb-4">
                       가로:세로 = 16:5 비율 권장
@@ -501,7 +518,7 @@ export default function EventSettingsPage() {
                   onChange={handleFileUpload}
                   className="hidden"
                 />
-                
+
                 <p className="text-sm text-gray-500">
                   최대 5MB, JPG, PNG, GIF, WebP 형식만 지원됩니다.
                 </p>
@@ -513,7 +530,7 @@ export default function EventSettingsPage() {
                   <Label className="text-sm font-medium">
                     텍스트 헤더 (이미지가 없을 때 표시됨)
                   </Label>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="headerText">헤더 텍스트</Label>
                     <Input
@@ -534,14 +551,20 @@ export default function EventSettingsPage() {
                         type="color"
                         value={eventData.headerBackgroundColor}
                         onChange={e =>
-                          handleInputChange('headerBackgroundColor', e.target.value)
+                          handleInputChange(
+                            'headerBackgroundColor',
+                            e.target.value
+                          )
                         }
                         className="w-12 h-10 rounded border"
                       />
                       <Input
                         value={eventData.headerBackgroundColor}
                         onChange={e =>
-                          handleInputChange('headerBackgroundColor', e.target.value)
+                          handleInputChange(
+                            'headerBackgroundColor',
+                            e.target.value
+                          )
                         }
                         placeholder="#f3f4f6"
                         className="flex-1"
@@ -557,7 +580,9 @@ export default function EventSettingsPage() {
                       </Label>
                       <div
                         className="p-8 rounded-lg text-center"
-                        style={{ backgroundColor: eventData.headerBackgroundColor }}
+                        style={{
+                          backgroundColor: eventData.headerBackgroundColor,
+                        }}
                       >
                         <h2 className="text-2xl font-bold text-gray-900">
                           {eventData.headerText}

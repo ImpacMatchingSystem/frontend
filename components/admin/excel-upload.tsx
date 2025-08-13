@@ -66,7 +66,6 @@ export function ExcelUpload({ type, onUploadComplete }: ExcelUploadProps) {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0]
     if (selectedFile) {
-
       /*
       // Excel 파일 형식 체크
       const validTypes = [
@@ -84,7 +83,7 @@ export function ExcelUpload({ type, onUploadComplete }: ExcelUploadProps) {
       }
       */
 
-      const fileName = selectedFile.name.toLowerCase();
+      const fileName = selectedFile.name.toLowerCase()
       if (!fileName.endsWith('.xlsx') && !fileName.endsWith('.xls')) {
         toast({
           title: '파일 형식 오류',

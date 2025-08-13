@@ -7,6 +7,7 @@ import { useState, useEffect } from 'react'
 
 import { Calendar, Clock, Users, CheckCircle, AlertCircle } from 'lucide-react'
 
+import { CompanyHeader } from '@/components/layout/company-header'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -18,7 +19,6 @@ import {
 } from '@/components/ui/card'
 
 import { useToast } from '@/hooks/use-toast'
-import { CompanyHeader } from '@/components/layout/company-header'
 
 interface DashboardStats {
   totalMeetings: number

@@ -6,7 +6,16 @@ import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
 import { useAuthStore } from '@/store/auth-store'
-import { Shield, LogOut, BarChart3, Users, Calendar, User, CalendarRange, Building2 } from 'lucide-react'
+import {
+  Shield,
+  LogOut,
+  BarChart3,
+  Users,
+  Calendar,
+  User,
+  CalendarRange,
+  Building2,
+} from 'lucide-react'
 
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'

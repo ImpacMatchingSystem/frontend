@@ -1,7 +1,8 @@
 // app/api/upload/header/route.ts
 import { NextRequest, NextResponse } from 'next/server'
-import { writeFile, unlink } from 'fs/promises'
+
 import { existsSync } from 'fs'
+import { writeFile, unlink } from 'fs/promises'
 import path from 'path'
 
 export async function POST(request: NextRequest) {
@@ -14,7 +15,13 @@ export async function POST(request: NextRequest) {
     }
 
     // 파일 확장자 검증
-    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
+    const allowedTypes = [
+      'image/jpeg',
+      'image/jpg',
+      'image/png',
+      'image/gif',
+      'image/webp',
+    ]
     if (!allowedTypes.includes(file.type)) {
       return NextResponse.json(
         { error: 'Invalid file type. Only images are allowed.' },
@@ -35,9 +42,15 @@ export async function POST(request: NextRequest) {
 
     // uploads/headers 디렉토리 생성
     const uploadDir = path.join(process.cwd(), 'public/uploads/headers')
-    
+
     // 기존 헤더 이미지 파일들 삭제
-    const headerImages = ['header.jpg', 'header.jpeg', 'header.png', 'header.gif', 'header.webp']
+    const headerImages = [
+      'header.jpg',
+      'header.jpeg',
+      'header.png',
+      'header.gif',
+      'header.webp',
+    ]
     for (const imageName of headerImages) {
       const existingPath = path.join(uploadDir, imageName)
       if (existsSync(existingPath)) {
@@ -53,15 +66,15 @@ export async function POST(request: NextRequest) {
     const extension = path.extname(file.name)
     const filename = `header${extension}`
     const filepath = path.join(uploadDir, filename)
-    
+
     await writeFile(filepath, buffer)
 
     const fileUrl = `/uploads/headers/${filename}`
 
-    return NextResponse.json({ 
-      success: true, 
+    return NextResponse.json({
+      success: true,
       url: fileUrl,
-      filename: filename
+      filename: filename,
     })
   } catch (error) {
     console.error('File upload error:', error)
@@ -78,11 +91,18 @@ export async function DELETE(request: NextRequest) {
     const filename = searchParams.get('filename')
 
     if (!filename) {
-      return NextResponse.json({ error: 'No filename provided' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'No filename provided' },
+        { status: 400 }
+      )
     }
 
-    const filepath = path.join(process.cwd(), 'public/uploads/headers', filename)
-    
+    const filepath = path.join(
+      process.cwd(),
+      'public/uploads/headers',
+      filename
+    )
+
     if (existsSync(filepath)) {
       await unlink(filepath)
     }

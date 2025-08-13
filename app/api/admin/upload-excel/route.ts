@@ -1,8 +1,9 @@
 import { getServerSession } from 'next-auth'
 import { NextRequest, NextResponse } from 'next/server'
+
 import bcrypt from 'bcryptjs'
-import { z } from 'zod'
 import * as XLSX from 'xlsx'
+import { z } from 'zod'
 
 import { authOptions } from '@/lib/config/auth'
 import { prisma } from '@/lib/config/db'
@@ -30,7 +31,10 @@ export async function POST(req: NextRequest) {
     const type = formData.get('type') as 'COMPANY' | 'BUYER'
 
     if (!file || !type || !['COMPANY', 'BUYER'].includes(type)) {
-      return NextResponse.json({ error: '파일 또는 타입이 올바르지 않습니다.' }, { status: 400 })
+      return NextResponse.json(
+        { error: '파일 또는 타입이 올바르지 않습니다.' },
+        { status: 400 }
+      )
     }
 
     // 파일 읽기 및 JSON으로 변환
@@ -43,7 +47,10 @@ export async function POST(req: NextRequest) {
     })
 
     if (jsonData.length === 0) {
-      return NextResponse.json({ error: 'Excel 파일에 데이터가 없습니다.' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'Excel 파일에 데이터가 없습니다.' },
+        { status: 400 }
+      )
     }
 
     const errors: { row: number; error: string; data: any }[] = []
@@ -64,7 +71,11 @@ export async function POST(req: NextRequest) {
     })
 
     if (validUsers.length === 0) {
-      return NextResponse.json({ message: '모든 데이터가 유효하지 않습니다.', errors, summary: { total: jsonData.length, success: 0, failed: errors.length }})
+      return NextResponse.json({
+        message: '모든 데이터가 유효하지 않습니다.',
+        errors,
+        summary: { total: jsonData.length, success: 0, failed: errors.length },
+      })
     }
 
     // 이메일 중복 확인
@@ -79,7 +90,11 @@ export async function POST(req: NextRequest) {
     validUsers.forEach(user => {
       const userEmail = user.이메일.trim().toLowerCase()
       if (existingEmails.has(userEmail)) {
-        errors.push({ row: user.rowIndex, error: '이미 등록된 이메일입니다.', data: { '이메일': user.이메일 } })
+        errors.push({
+          row: user.rowIndex,
+          error: '이미 등록된 이메일입니다.',
+          data: { 이메일: user.이메일 },
+        })
       } else {
         existingEmails.add(userEmail)
         usersToCreate.push(user)
@@ -89,14 +104,14 @@ export async function POST(req: NextRequest) {
     // 비밀번호 해싱 및 대량 생성
     if (usersToCreate.length > 0) {
       const preparedData = await Promise.all(
-          usersToCreate.map(async (user) => ({
-            name: user.이름,
-            email: user.이메일.trim().toLowerCase(),
-            password: await bcrypt.hash(String(user.비밀번호), 12),
-            description: user.소개,
-            website: user.홈페이지,
-            role: type,
-          }))
+        usersToCreate.map(async user => ({
+          name: user.이름,
+          email: user.이메일.trim().toLowerCase(),
+          password: await bcrypt.hash(String(user.비밀번호), 12),
+          description: user.소개,
+          website: user.홈페이지,
+          role: type,
+        }))
       )
 
       await prisma.user.createMany({
@@ -115,9 +130,11 @@ export async function POST(req: NextRequest) {
         failed: errors.length,
       },
     })
-
   } catch (error) {
     console.error('Excel upload error:', error)
-    return NextResponse.json({ error: '엑셀 업로드에 실패했습니다.' }, { status: 500 })
+    return NextResponse.json(
+      { error: '엑셀 업로드에 실패했습니다.' },
+      { status: 500 }
+    )
   }
 }

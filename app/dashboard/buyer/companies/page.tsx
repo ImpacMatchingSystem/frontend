@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react'
 
 import { Search, Grid, List, ExternalLink, Clock } from 'lucide-react'
 
+import { BuyerHeader } from '@/components/layout/buyer-header'
 import { Footer } from '@/components/layout/footer'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -18,7 +19,6 @@ import {
 import { Input } from '@/components/ui/input'
 
 import { useToast } from '@/hooks/use-toast'
-import { BuyerHeader } from '@/components/layout/buyer-header'
 
 interface Company {
   id: string

@@ -59,12 +59,18 @@ export default function HomePage() {
     }
   }
 
-  const formatDateRange = (startDate: string | Date, endDate: string | Date): string => {
-    const options: Intl.DateTimeFormatOptions = { month: 'numeric', day: 'numeric' };
-    const start = new Date(startDate).toLocaleDateString('ko-KR', options);
-    const end = new Date(endDate).toLocaleDateString('ko-KR', options);
-    return `${start.replace(/\.$/, '')} ~ ${end.replace(/\.$/, '')}`;
-  };
+  const formatDateRange = (
+    startDate: string | Date,
+    endDate: string | Date
+  ): string => {
+    const options: Intl.DateTimeFormatOptions = {
+      month: 'numeric',
+      day: 'numeric',
+    }
+    const start = new Date(startDate).toLocaleDateString('ko-KR', options)
+    const end = new Date(endDate).toLocaleDateString('ko-KR', options)
+    return `${start.replace(/\.$/, '')} ~ ${end.replace(/\.$/, '')}`
+  }
 
   if (loading) {
     return (
@@ -95,10 +101,10 @@ export default function HomePage() {
                 src={event.headerImage}
                 alt={event.name}
                 className="w-full h-64 md:h-80 lg:h-96 object-cover"
-                onError={(e) => {
-                  console.error('Header image load error:', event.headerImage);
+                onError={e => {
+                  console.error('Header image load error:', event.headerImage)
                   // 이미지 로드 실패 시 해당 요소 숨김
-                  e.currentTarget.parentElement!.style.display = 'none';
+                  e.currentTarget.parentElement!.style.display = 'none'
                 }}
               />
             </div>
@@ -106,8 +112,8 @@ export default function HomePage() {
             // 텍스트 헤더
             <div
               className="w-full py-8 md:py-12"
-              style={{ 
-                backgroundColor: event.headerBackgroundColor || '#f3f4f6' 
+              style={{
+                backgroundColor: event.headerBackgroundColor || '#f3f4f6',
               }}
             >
               <div className="container mx-auto px-4 text-center">
@@ -188,15 +194,14 @@ export default function HomePage() {
             </div>
           )}
         </div>
-                  <div className="flex flex-col sm:flex-row gap-4 justify-center mt-5">
-            <Button size="lg" asChild>
-              <Link href="/dashboard/buyer/companies">
-                미팅 신청하기
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Link>
-            </Button>
-          </div>
-
+        <div className="flex flex-col sm:flex-row gap-4 justify-center mt-5">
+          <Button size="lg" asChild>
+            <Link href="/dashboard/buyer/companies">
+              미팅 신청하기
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Link>
+          </Button>
+        </div>
       </section>
 
       {/* Features Section */}
