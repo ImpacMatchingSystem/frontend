@@ -165,3 +165,28 @@ export const normalizeUrl = (url: string): string => {
 
   return `https://${trimmed}`
 }
+
+/**
+ * JSON 데이터를 Excel 파일로 내보내는 함수
+ * @param data - 내보낼 데이터 배열 (객체 형태)
+ * @param filename - 다운로드될 파일 이름
+ */
+export const exportCompaniesToExcel = (data: any[], filename: string) => {
+  // 데이터 형식 변환 (Excel 헤더를 한글로, 필요한 데이터만 선택)
+  const formattedData = data.map(company => ({
+    '기업명': company.name,
+    '이메일': company.email,
+    '웹사이트': company.website || '',
+    '소개': company.description || '',
+    '총 미팅 수': company._count?.companyMeetings || 0,
+    '등록일': new Date(company.createdAt).toLocaleDateString('ko-KR'),
+  }));
+
+  // 워크시트와 워크북 생성
+  const worksheet = XLSX.utils.json_to_sheet(formattedData);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Companies');
+
+  // 파일 다운로드 트리거
+  XLSX.writeFile(workbook, filename);
+};

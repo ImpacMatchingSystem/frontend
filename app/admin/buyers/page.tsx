@@ -332,7 +332,7 @@ export default function AdminBuyersPage() {
         </Card>
 
         {/* 통계 */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
@@ -345,6 +345,7 @@ export default function AdminBuyersPage() {
             </CardContent>
           </Card>
 
+          {/*
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">활성 바이어</CardTitle>
@@ -359,6 +360,7 @@ export default function AdminBuyersPage() {
               </div>
             </CardContent>
           </Card>
+          */}
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

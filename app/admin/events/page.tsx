@@ -432,7 +432,7 @@ export default function EventSettingsPage() {
             </CardContent>
           </Card>
 
-          {/* 행사 상태 */}
+          {/* 행사 상태
           <Card>
             <CardHeader>
               <CardTitle>행사 상태</CardTitle>
@@ -454,6 +454,7 @@ export default function EventSettingsPage() {
               </div>
             </CardContent>
           </Card>
+          */}
 
           {/* 저장 버튼 */}
           <div className="flex justify-end">
