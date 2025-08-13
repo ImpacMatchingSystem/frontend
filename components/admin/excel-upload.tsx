@@ -82,6 +82,17 @@ export function ExcelUpload({ type, onUploadComplete }: ExcelUploadProps) {
         })
         return
       }
+      */
+
+      const fileName = selectedFile.name.toLowerCase();
+      if (!fileName.endsWith('.xlsx') && !fileName.endsWith('.xls')) {
+        toast({
+          title: '파일 형식 오류',
+          description: 'Excel 파일(.xlsx, .xls)만 업로드 가능합니다.',
+          variant: 'destructive',
+        })
+        return
+      }
 
       // 파일 크기 체크 (최대 10MB)
       if (selectedFile.size > 10 * 1024 * 1024) {
