@@ -1,7 +1,7 @@
 'use client'
 
 import type React from 'react'
-import { useMemo, useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 
 import {
   User,
@@ -17,8 +17,6 @@ import {
   Filter,
 } from 'lucide-react'
 
-import { exportBuyersToExcel } from '@/lib/utils/excel-utils'
-import { BuyerForm } from './_components/buyer-form'
 import { ExcelUpload } from '@/components/admin/excel-upload'
 import { AdminHeader } from '@/components/layout/admin-header'
 import { Badge } from '@/components/ui/badge'
@@ -45,11 +43,14 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 
 import { useToast } from '@/hooks/use-toast'
 
-// 새로운 타입 정의 (Prisma 스키마 기반)
+import { exportBuyersToExcel } from '@/lib/utils/excel-utils'
+
+import { BuyerForm } from './_components/buyer-form'
+
+// 타입 정의 (Prisma 스키마 기반)
 interface Buyer {
   id: string
   name: string
@@ -134,10 +135,7 @@ export default function AdminBuyersPage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          ...buyerData,
-          role: 'BUYER',
-        }),
+        body: JSON.stringify(buyerData),
       })
 
       if (!response.ok) {
@@ -163,7 +161,7 @@ export default function AdminBuyersPage() {
     }
   }
 
-  const handleUpdateBuyer = async (buyerData: Partial<Buyer>) => {
+  const handleUpdateBuyer = async (buyerData: any) => {
     if (!selectedBuyer) return
 
     try {
@@ -229,23 +227,22 @@ export default function AdminBuyersPage() {
     }
   }
 
-  /* Excel 다운로드 핸들러 */
   const handleExport = () => {
     if (filteredBuyers.length === 0) {
       toast({
         title: '내보낼 데이터 없음',
         description: '현재 목록에 바이어가 없습니다.',
         variant: 'destructive',
-      });
-      return;
+      })
+      return
     }
-    const fileName = `바이어목록_${new Date().toISOString().split('T')[0]}.xlsx`;
-    exportBuyersToExcel(filteredBuyers, fileName);
+    const fileName = `바이어목록_${new Date().toISOString().split('T')[0]}.xlsx`
+    exportBuyersToExcel(filteredBuyers, fileName)
     toast({
       title: '다운로드 시작',
       description: '바이어 목록을 Excel 파일로 다운로드합니다.',
-    });
-  };
+    })
+  }
 
   if (loading) {
     return (
@@ -301,8 +298,8 @@ export default function AdminBuyersPage() {
             </Dialog>
 
             <Dialog
-                open={isUploadDialogOpen}
-                onOpenChange={setIsUploadDialogOpen}
+              open={isUploadDialogOpen}
+              onOpenChange={setIsUploadDialogOpen}
             >
               <DialogTrigger asChild>
                 <Button variant="outline">
@@ -318,11 +315,11 @@ export default function AdminBuyersPage() {
                   </DialogDescription>
                 </DialogHeader>
                 <ExcelUpload
-                    type="BUYER"
-                    onUploadComplete={() => {
-                      setIsUploadDialogOpen(false)
-                      fetchBuyers()
-                    }}
+                  type="BUYER"
+                  onUploadComplete={() => {
+                    setIsUploadDialogOpen(false)
+                    fetchBuyers()
+                  }}
                 />
               </DialogContent>
             </Dialog>
@@ -339,9 +336,9 @@ export default function AdminBuyersPage() {
           </CardHeader>
           <CardContent>
             <Input
-                placeholder="바이어명, 이메일 또는 소개로 검색..."
-                value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
+              placeholder="바이어명, 이메일 또는 소개로 검색..."
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
             />
           </CardContent>
         </Card>
@@ -389,56 +386,87 @@ export default function AdminBuyersPage() {
           </CardHeader>
           <CardContent>
             {filteredBuyers.length === 0 ? (
-                <div className="text-center py-12">
-                  <p className="text-gray-500 text-lg">
-                    {searchTerm
-                        ? '검색 조건에 맞는 바이어가 없습니다.'
-                        : '등록된 바이어가 없습니다.'}
-                  </p>
-                </div>
+              <div className="text-center py-12">
+                <p className="text-gray-500 text-lg">
+                  {searchTerm
+                    ? '검색 조건에 맞는 바이어가 없습니다.'
+                    : '등록된 바이어가 없습니다.'}
+                </p>
+              </div>
             ) : (
-                <div className="space-y-4">
-                  {filteredBuyers.map(buyer => (
-                      <div
-                          key={buyer.id}
-                          className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
-                      >
-                        <div className="flex items-center space-x-4">
-                          <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
-                            <User className="h-6 w-6 text-gray-600" />
-                          </div>
-                          <div className="flex-1">
-                            <div className="flex items-center gap-3 mb-1">
-                              <h3 className="font-semibold text-lg">{buyer.name}</h3>
-                              <Badge variant="outline" className="text-xs">바이어</Badge>
-                            </div>
-                            <p className="text-sm text-gray-600">{buyer.email}</p>
-                            <div className="flex items-center gap-4 text-sm text-gray-500 mt-1">
-                              {buyer.website && (
-                                  <span className="flex items-center gap-1"><Globe className="h-3 w-3" /><a href={buyer.website} target="_blank" rel="noopener noreferrer" className="hover:text-blue-600">웹사이트</a></span>
-                              )}
-                              {buyer._count && (
-                                  <span className="flex items-center gap-1"><Calendar className="h-3 w-3" />미팅 {buyer._count.buyerMeetings}건</span>
-                              )}
-                            </div>
-                          </div>
+              <div className="space-y-4">
+                {filteredBuyers.map(buyer => (
+                  <div
+                    key={buyer.id}
+                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
+                  >
+                    <div className="flex items-center space-x-4">
+                      <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
+                        <User className="h-6 w-6 text-gray-600" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-1">
+                          <h3 className="font-semibold text-lg">
+                            {buyer.name}
+                          </h3>
+                          <Badge variant="outline" className="text-xs">
+                            바이어
+                          </Badge>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild><Button variant="ghost" size="sm"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => { setSelectedBuyer(buyer); setIsEditDialogOpen(true); }}>
-                                <Edit className="mr-2 h-4 w-4" />수정
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleDeleteBuyer(buyer)} className="text-red-600">
-                                <Trash2 className="mr-2 h-4 w-4" />삭제
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                        <p className="text-sm text-gray-600">{buyer.email}</p>
+                        <div className="flex items-center gap-4 text-sm text-gray-500 mt-1">
+                          {buyer.website && (
+                            <span className="flex items-center gap-1">
+                              <Globe className="h-3 w-3" />
+                              <a
+                                href={buyer.website}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="hover:text-blue-600"
+                              >
+                                웹사이트
+                              </a>
+                            </span>
+                          )}
+                          {buyer._count && (
+                            <span className="flex items-center gap-1">
+                              <Calendar className="h-3 w-3" />
+                              미팅 {buyer._count.buyerMeetings}건
+                            </span>
+                          )}
                         </div>
                       </div>
-                  ))}
-                </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            onClick={() => {
+                              setSelectedBuyer(buyer)
+                              setIsEditDialogOpen(true)
+                            }}
+                          >
+                            <Edit className="mr-2 h-4 w-4" />
+                            수정
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleDeleteBuyer(buyer)}
+                            className="text-red-600"
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            삭제
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </div>
+                ))}
+              </div>
             )}
           </CardContent>
         </Card>
@@ -455,7 +483,13 @@ export default function AdminBuyersPage() {
 
             {selectedBuyer && (
               <BuyerForm
-                buyer={selectedBuyer}
+                initialData={{
+                  name: selectedBuyer.name,
+                  email: selectedBuyer.email,
+                  password: '',
+                  description: selectedBuyer.description || '',
+                  website: selectedBuyer.website || '',
+                }}
                 onSave={handleUpdateBuyer}
                 onCancel={() => {
                   setIsEditDialogOpen(false)
@@ -467,114 +501,5 @@ export default function AdminBuyersPage() {
         </Dialog>
       </div>
     </div>
-  )
-}
-
-function BuyerForm({
-  buyer,
-  onSave,
-  onCancel,
-}: {
-  buyer?: Buyer
-  onSave: (data: any) => void
-  onCancel: () => void
-}) {
-  const [formData, setFormData] = useState({
-    name: buyer?.name || '',
-    email: buyer?.email || '',
-    password: '', // 수정 시에는 비밀번호 변경할 때만 입력
-    website: buyer?.website || '',
-    description: buyer?.description || '',
-  })
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-
-    // 비밀번호가 비어있으면 제외 (수정 시)
-    const submitData =
-      buyer && !formData.password
-        ? { ...formData, password: undefined }
-        : formData
-
-    onSave(submitData)
-  }
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="name">이름 *</Label>
-          <Input
-            id="name"
-            value={formData.name}
-            onChange={e =>
-              setFormData(prev => ({ ...prev, name: e.target.value }))
-            }
-            required
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="email">이메일 *</Label>
-          <Input
-            id="email"
-            type="email"
-            value={formData.email}
-            onChange={e =>
-              setFormData(prev => ({ ...prev, email: e.target.value }))
-            }
-            required
-          />
-        </div>
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="password">
-          비밀번호 {buyer ? '(변경할 때만 입력)' : '*'}
-        </Label>
-        <Input
-          id="password"
-          type="password"
-          value={formData.password}
-          onChange={e =>
-            setFormData(prev => ({ ...prev, password: e.target.value }))
-          }
-          required={!buyer}
-          placeholder={buyer ? '변경하려면 새 비밀번호 입력' : ''}
-        />
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="website">웹사이트</Label>
-        <Input
-          id="website"
-          type="url"
-          value={formData.website}
-          onChange={e =>
-            setFormData(prev => ({ ...prev, website: e.target.value }))
-          }
-          placeholder="https://example.com"
-        />
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="description">소개</Label>
-        <Input
-          id="description"
-          value={formData.description}
-          onChange={e =>
-            setFormData(prev => ({ ...prev, description: e.target.value }))
-          }
-          placeholder="바이어 소개를 입력하세요"
-        />
-      </div>
-
-      <div className="flex justify-end space-x-2 pt-4">
-        <Button type="button" variant="outline" onClick={onCancel}>
-          취소
-        </Button>
-        <Button type="submit">저장</Button>
-      </div>
-    </form>
   )
 }
