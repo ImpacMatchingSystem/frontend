@@ -66,6 +66,7 @@ export function ExcelUpload({ type, onUploadComplete }: ExcelUploadProps) {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0]
     if (selectedFile) {
+      /*
       // Excel 파일 형식 체크
       const validTypes = [
         'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -73,6 +74,17 @@ export function ExcelUpload({ type, onUploadComplete }: ExcelUploadProps) {
       ]
 
       if (!validTypes.includes(selectedFile.type)) {
+        toast({
+          title: '파일 형식 오류',
+          description: 'Excel 파일(.xlsx, .xls)만 업로드 가능합니다.',
+          variant: 'destructive',
+        })
+        return
+      }
+      */
+
+      const fileName = selectedFile.name.toLowerCase();
+      if (!fileName.endsWith('.xlsx') && !fileName.endsWith('.xls')) {
         toast({
           title: '파일 형식 오류',
           description: 'Excel 파일(.xlsx, .xls)만 업로드 가능합니다.',
