@@ -60,6 +60,13 @@ export default function HomePage() {
     }
   }
 
+  const formatDateRange = (startDate: string | Date, endDate: string | Date): string => {
+    const options: Intl.DateTimeFormatOptions = { month: 'numeric', day: 'numeric' };
+    const start = new Date(startDate).toLocaleDateString('ko-KR', options);
+    const end = new Date(endDate).toLocaleDateString('ko-KR', options);
+    return `${start.slice(0,5)} ~ ${end.slice(0,5)}`;
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-white">
@@ -112,7 +119,7 @@ export default function HomePage() {
           <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
             {event?.name || 'ImpacMatching'}
             <br />
-            <span className="text-primary">비즈니스 매칭 플랫폼</span>
+            <span className="text-primary text-4xl">비즈니스 매칭 서비스</span>
           </h1>
 
           {/* 헤더 텍스트 또는 기본 설명 */}
@@ -135,12 +142,9 @@ export default function HomePage() {
             <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
               <div className="bg-white/80 backdrop-blur-sm rounded-lg p-6 text-center">
                 <div className="text-3xl font-bold text-primary mb-2">
-                  {new Date(event.startDate).toLocaleDateString('ko-KR', {
-                    month: 'numeric',
-                    day: 'numeric',
-                  })}
+                  {formatDateRange(event.startDate, event.endDate)}
                 </div>
-                <div className="text-sm text-gray-600">행사 시작일</div>
+                <div className="text-sm text-gray-600">행사 기간</div>
               </div>
               <div className="bg-white/80 backdrop-blur-sm rounded-lg p-6 text-center">
                 <div className="text-3xl font-bold text-primary mb-2">
@@ -150,7 +154,7 @@ export default function HomePage() {
               </div>
               <div className="bg-white/80 backdrop-blur-sm rounded-lg p-6 text-center">
                 <div className="text-3xl font-bold text-primary mb-2">
-                  {event.operationStartTime} - {event.operationEndTime}
+                  {event.operationStartTime} ~ {event.operationEndTime}
                 </div>
                 <div className="text-sm text-gray-600">운영 시간</div>
               </div>
@@ -177,7 +181,7 @@ export default function HomePage() {
                 ? `${event.name}의 특별함`
                 : '왜 ImpacMatching을 선택해야 할까요?'}
             </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto break-keep">
               효율적이고 신뢰할 수 있는 미팅 매칭 서비스로 비즈니스 성공을
               도와드립니다.
             </p>
@@ -190,7 +194,7 @@ export default function HomePage() {
                   <Zap className="h-6 w-6 text-primary" />
                 </div>
                 <CardTitle>효율적인 매칭</CardTitle>
-                <CardDescription>
+                <CardDescription className="break-keep">
                   스마트한 매칭 시스템으로 최적의 비즈니스 파트너를
                   찾아드립니다.
                 </CardDescription>
@@ -203,7 +207,7 @@ export default function HomePage() {
                   <Calendar className="h-6 w-6 text-primary" />
                 </div>
                 <CardTitle>간편한 예약</CardTitle>
-                <CardDescription>
+                <CardDescription className="break-keep">
                   직관적인 인터페이스로 원하는 시간에 쉽게 미팅을 예약하세요.
                 </CardDescription>
               </CardHeader>
@@ -215,7 +219,7 @@ export default function HomePage() {
                   <Users className="h-6 w-6 text-primary" />
                 </div>
                 <CardTitle>실시간 관리</CardTitle>
-                <CardDescription>
+                <CardDescription className="break-keep">
                   실시간 알림과 관리 시스템으로 원활한 커뮤니케이션을
                   지원합니다.
                 </CardDescription>
