@@ -51,13 +51,19 @@ export function CompanyHeader() {
 
         <nav className="hidden md:flex items-center space-x-6">
           <Link
-            href="/dashboard/buyer"
+            href="/dashboard/company"
+            className="text-sm font-medium hover:text-primary"
+          >
+            대시보드
+          </Link>
+          <Link
+            href="/dashboard/company/meetings"
             className="text-sm font-medium hover:text-primary"
           >
             미팅관리
           </Link>
           <Link
-            href="/dashboard/buyer/companies"
+            href="/dashboard/company/schedule"
             className="text-sm font-medium hover:text-primary"
           >
             시간설정
@@ -79,6 +85,12 @@ export function CompanyHeader() {
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56" align="end" forceMount>
                 <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link href="/dashboard/company/meetings">
+                    <User className="mr-2 h-4 w-4" />
+                    대시보드
+                  </Link>
+                </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link href="/dashboard/company/meetings">
                     <Users className="mr-2 h-4 w-4" />

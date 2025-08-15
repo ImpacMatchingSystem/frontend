@@ -32,6 +32,7 @@ import {
 } from '@/components/ui/select'
 
 import { useToast } from '@/hooks/use-toast'
+import { CompanyHeader } from '@/components/layout/company-header'
 
 interface TimeSlot {
   id: string
@@ -336,9 +337,9 @@ export default function CompanySchedulePage() {
   const bookedSlots = timeSlots.filter(slot => slot.isBooked)
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* 헤더 */}
+    <div className="min-h-screen bg-gray-50 pb-8">
+      <CompanyHeader />
+      <div className="max-w-6xl mx-auto mt-8 px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">미팅 시간대 관리</h1>
           <p className="text-gray-600 mt-2">
