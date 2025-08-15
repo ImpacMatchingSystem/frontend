@@ -1,24 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/config/db'
 
-export async function GET(req: NextRequest) {
+export async function GET(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
   try {
-    const { searchParams } = new URL(req.url)
-    const search = searchParams.get('search')
+    const { id } = params
 
-    let whereClause: any = {
-      role: 'COMPANY',
+    if (!id) {
+      return NextResponse.json(
+        { error: '회사 ID가 필요합니다' },
+        { status: 400 }
+      )
     }
 
-    if (search) {
-      whereClause.OR = [
-        { name: { contains: search, mode: 'insensitive' } },
-        { description: { contains: search, mode: 'insensitive' } },
-      ]
-    }
-
-    const companies = await prisma.user.findMany({
-      where: whereClause,
+    // 특정 회사 정보와 예약 가능한 시간대를 가져옴
+    const company = await prisma.user.findFirst({
+      where: {
+        id: id,
+        role: 'COMPANY',
+      },
       select: {
         id: true,
         name: true,
@@ -27,9 +29,8 @@ export async function GET(req: NextRequest) {
         website: true,
         timeSlots: {
           where: {
-            isBooked: false,
             startTime: {
-              gte: new Date(),
+              gte: new Date(), // 현재 시간 이후만
             },
           },
           select: {
@@ -52,16 +53,20 @@ export async function GET(req: NextRequest) {
           },
         },
       },
-      orderBy: {
-        name: 'asc',
-      },
     })
 
-    return NextResponse.json(companies)
+    if (!company) {
+      return NextResponse.json(
+        { error: '회사를 찾을 수 없습니다' },
+        { status: 404 }
+      )
+    }
+
+    return NextResponse.json(company)
   } catch (error) {
-    console.error('Companies fetch error:', error)
+    console.error('Company fetch error:', error)
     return NextResponse.json(
-      { error: '회사 목록을 가져오는데 실패했습니다' },
+      { error: '회사 정보를 가져오는데 실패했습니다' },
       { status: 500 }
     )
   }
