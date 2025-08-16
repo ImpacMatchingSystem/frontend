@@ -98,26 +98,80 @@ export async function PATCH(req: NextRequest) {
       )
     }
 
-    const updatedEvent = await prisma.event.update({
-      where: { id: event.id },
-      data: {
-        name,
-        description,
-        startDate: startDate ? new Date(startDate) : undefined,
-        endDate: endDate ? new Date(endDate) : undefined,
-        venue,
-        headerImage,
-        headerText,
-        meetingDuration,
-        operationStartTime,
-        operationEndTime,
-        lunchStartTime,
-        lunchEndTime,
-        status,
-      },
-    })
+    // 미팅 시간이 변경되는지 확인
+    const isMeetingDurationChanged = meetingDuration && meetingDuration !== event.meetingDuration
 
-    return NextResponse.json(updatedEvent)
+    let updatedEvent
+    let resetMessage = ''
+
+    if (isMeetingDurationChanged) {
+      // 트랜잭션으로 처리
+      await prisma.$transaction(async (tx) => {
+        // 1. 모든 미팅 삭제 (CASCADE로 인해 TimeSlot의 isBooked도 자동으로 false가 됨)
+        const deletedMeetings = await tx.meeting.deleteMany({})
+        
+        // 2. 모든 TimeSlot 삭제
+        const deletedTimeSlots = await tx.timeSlot.deleteMany({})
+        
+        // 3. 미팅 관련 알림 삭제
+        await tx.notification.deleteMany({
+          where: {
+            type: {
+              in: ['MEETING_REQUEST', 'MEETING_APPROVED', 'MEETING_REJECTED', 'MEETING_CANCELLED']
+            }
+          }
+        })
+
+        // 4. 행사 정보 업데이트
+        updatedEvent = await tx.event.update({
+          where: { id: event.id },
+          data: {
+            name,
+            description,
+            startDate: startDate ? new Date(startDate) : undefined,
+            endDate: endDate ? new Date(endDate) : undefined,
+            venue,
+            headerImage,
+            headerText,
+            meetingDuration,
+            operationStartTime,
+            operationEndTime,
+            lunchStartTime,
+            lunchEndTime,
+            status,
+          },
+        })
+
+        resetMessage = `미팅 시간 변경으로 인해 ${deletedMeetings.count}개의 미팅과 ${deletedTimeSlots.count}개의 시간대가 초기화되었습니다.`
+      })
+    } else {
+      // 미팅 시간이 변경되지 않은 경우 일반 업데이트
+      updatedEvent = await prisma.event.update({
+        where: { id: event.id },
+        data: {
+          name,
+          description,
+          startDate: startDate ? new Date(startDate) : undefined,
+          endDate: endDate ? new Date(endDate) : undefined,
+          venue,
+          headerImage,
+          headerText,
+          meetingDuration,
+          operationStartTime,
+          operationEndTime,
+          lunchStartTime,
+          lunchEndTime,
+          status,
+        },
+      })
+    }
+
+    const response = {
+      ...updatedEvent,
+      ...(resetMessage && { resetMessage })
+    }
+
+    return NextResponse.json(response)
   } catch (error) {
     console.error('Event update error:', error)
     return NextResponse.json(
