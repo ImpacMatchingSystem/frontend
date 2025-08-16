@@ -507,7 +507,9 @@ export default function CompanySchedulePage() {
           <p className="text-sm sm:text-base text-gray-600 mt-2">
             {eventInfo && (
               <>
-                {eventInfo.name} • {new Date(eventInfo.startDate).toLocaleDateString('ko-KR')} ~ {new Date(eventInfo.endDate).toLocaleDateString('ko-KR')} • 미팅 시간: {eventInfo.meetingDuration}분
+                • {eventInfo.name} <br />
+                • {new Date(eventInfo.startDate).toLocaleDateString('ko-KR')} ~ {new Date(eventInfo.endDate).toLocaleDateString('ko-KR')} <br />
+                • 미팅 시간: {eventInfo.meetingDuration}분
               </>
             )}
           </p>
