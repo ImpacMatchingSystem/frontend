@@ -274,6 +274,9 @@ export default function BuyerDashboard() {
             <CardTitle className="flex items-center gap-2">
               <Calendar className="h-5 w-5" />
               미팅 신청 내역
+              <Button asChild className='ml-2'>
+                <Link href="/dashboard/buyer/companies">기업 둘러보기</Link>
+              </Button>
             </CardTitle>
             <CardDescription>
               신청한 미팅들의 현황을 확인하세요.
@@ -286,9 +289,6 @@ export default function BuyerDashboard() {
                 <p className="text-gray-500 text-lg mb-4">
                   아직 신청한 미팅이 없습니다.
                 </p>
-                <Button asChild>
-                  <Link href="/dashboard/buyer/companies">기업 둘러보기</Link>
-                </Button>
               </div>
             ) : (
               <div className="space-y-4">
@@ -413,33 +413,6 @@ export default function BuyerDashboard() {
             )}
           </CardContent>
         </Card>
-
-        {/* 빠른 액션 */}
-        <div className="mt-8">
-          <Card>
-            <CardHeader>
-              <CardTitle>빠른 액션</CardTitle>
-              <CardDescription>
-                자주 사용하는 기능들에 빠르게 접근하세요
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-wrap gap-4">
-                <Button asChild>
-                  <Link href="/dashboard/buyer/companies">
-                    <Building2 className="mr-2 h-4 w-4" />
-                    기업 둘러보기
-                  </Link>
-                </Button>
-                <Button variant="outline" asChild>
-                  <Link href="/dashboard/buyer/companies">
-                    <Calendar className="mr-2 h-4 w-4" />새 미팅 신청
-                  </Link>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
       </div>
     </div>
   )
