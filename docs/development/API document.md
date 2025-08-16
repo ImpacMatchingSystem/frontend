@@ -404,6 +404,83 @@ PATCH /api/event
 }
 ```
 
+**유효성 검사:**
+- `operationStartTime`, `operationEndTime`, `lunchStartTime`, `lunchEndTime`: "HH:MM" 형식 (예: "09:00", "18:30")
+- `meetingDuration`: 15분 ~ 120분 사이의 정수
+
+**⚠️ 중요 주의사항:**
+`meetingDuration`(미팅 시간)이 변경되면 **모든 기존 미팅 데이터가 초기화**됩니다:
+- 모든 미팅 삭제
+- 모든 시간대 삭제  
+- 미팅 관련 알림 삭제
+
+이는 미팅 시간 변경으로 인한 기존 예약의 일관성 문제를 방지하기 위함입니다.
+
+**응답 (일반 업데이트):**
+
+```json
+{
+  "id": "event_id",
+  "name": "2025 Tech Innovation Fair",
+  "description": "혁신 기술 기업과 투자자를 연결하는 행사",
+  "startDate": "2025-09-15T09:00:00Z",
+  "endDate": "2025-09-17T18:00:00Z",
+  "venue": "코엑스 컨벤션센터",
+  "headerImage": "https://example.com/header-image.jpg", 
+  "headerText": "혁신의 미래를 만나보세요",
+  "meetingDuration": 30,
+  "operationStartTime": "09:00",
+  "operationEndTime": "18:00",
+  "lunchStartTime": "12:00",
+  "lunchEndTime": "13:00",
+  "status": "ACTIVE",
+  "updatedAt": "2024-01-15T11:00:00Z"
+}
+```
+
+**응답 (미팅 시간 변경으로 데이터 초기화된 경우):**
+
+```json
+{
+  "id": "event_id",
+  "name": "2025 Tech Innovation Fair", 
+  "description": "혁신 기술 기업과 투자자를 연결하는 행사",
+  "startDate": "2025-09-15T09:00:00Z",
+  "endDate": "2025-09-17T18:00:00Z",
+  "venue": "코엑스 컨벤션센터",
+  "headerImage": "https://example.com/header-image.jpg",
+  "headerText": "혁신의 미래를 만나보세요", 
+  "meetingDuration": 45,
+  "operationStartTime": "09:00",
+  "operationEndTime": "18:00",
+  "lunchStartTime": "12:00",
+  "lunchEndTime": "13:00",
+  "status": "ACTIVE",
+  "updatedAt": "2024-01-15T11:00:00Z",
+  "resetMessage": "미팅 시간 변경으로 인해 12개의 미팅과 25개의 시간대가 초기화되었습니다."
+}
+```
+
+**에러 응답:**
+
+```json
+{
+  "error": "운영 시작 시간 형식이 잘못되었습니다 (HH:MM)"
+}
+```
+
+```json
+{
+  "error": "미팅 시간은 15분 ~ 120분 사이여야 합니다"
+}
+```
+
+```json
+{
+  "error": "수정할 행사가 없습니다"
+}
+```
+
 ---
 
 ## 👨‍💼 관리자 API
@@ -701,6 +778,24 @@ POST /api/admin/reset-data
 }
 ```
 
+```json
+{
+  "error": "운영 시작 시간 형식이 잘못되었습니다 (HH:MM)"
+}
+```
+
+```json
+{
+  "error": "미팅 시간은 15분 ~ 120분 사이여야 합니다"
+}
+```
+
+```json
+{
+  "error": "수정할 행사가 없습니다"
+}
+```
+
 ---
 
 ## 📝 요청/응답 헤더
@@ -760,7 +855,3 @@ const approveResponse = await fetch('/api/meetings/meeting_id', {
   body: JSON.stringify({ status: 'CONFIRMED' }),
 })
 ```
-
----
-
-이 API 문서는 ImpacMatching 시스템의 모든 엔드포인트를 상세히 설명하며, 개발자가 시스템을 통합하고 사용하는데 필요한 모든 정보를 제공합니다.
