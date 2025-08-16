@@ -14,6 +14,8 @@ import {
   X,
   Filter,
   Eye,
+  Ban,
+  AlertTriangle,
 } from 'lucide-react'
 
 import { CompanyHeader } from '@/components/layout/company-header'
@@ -26,6 +28,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
 } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
 import {
@@ -36,6 +39,17 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
 
 import { useToast } from '@/hooks/use-toast'
 
@@ -72,6 +86,7 @@ export default function CompanyMeetingsPage() {
   const [selectedMeeting, setSelectedMeeting] =
     useState<MeetingWithDetails | null>(null)
   const [statusFilter, setStatusFilter] = useState('all')
+  const [actionLoading, setActionLoading] = useState<string | null>(null)
 
   const { toast } = useToast()
 
@@ -129,8 +144,10 @@ export default function CompanyMeetingsPage() {
 
   const handleMeetingAction = async (
     meetingId: string,
-    action: 'CONFIRMED' | 'REJECTED'
+    action: 'CONFIRMED' | 'REJECTED' | 'CANCELLED'
   ) => {
+    setActionLoading(meetingId)
+    
     try {
       const response = await fetch(`/api/meetings/${meetingId}`, {
         method: 'PATCH',
@@ -144,9 +161,15 @@ export default function CompanyMeetingsPage() {
         throw new Error('미팅 상태 변경 실패')
       }
 
+      const actionTexts = {
+        CONFIRMED: '승인',
+        REJECTED: '거절',
+        CANCELLED: '취소'
+      }
+
       toast({
-        title: action === 'CONFIRMED' ? '미팅 승인' : '미팅 거절',
-        description: `미팅이 ${action === 'CONFIRMED' ? '승인' : '거절'}되었습니다.`,
+        title: `미팅 ${actionTexts[action]}`,
+        description: `미팅이 ${actionTexts[action]}되었습니다.`,
       })
 
       setSelectedMeeting(null)
@@ -158,6 +181,8 @@ export default function CompanyMeetingsPage() {
         description: '미팅 상태 변경에 실패했습니다.',
         variant: 'destructive',
       })
+    } finally {
+      setActionLoading(null)
     }
   }
 
@@ -204,6 +229,17 @@ export default function CompanyMeetingsPage() {
         minute: '2-digit',
       }),
     }
+  }
+
+  // 미팅 취소 가능 여부 확인 (미팅 시작 1시간 전까지만 취소 가능)
+  const canCancelMeeting = (meeting: MeetingWithDetails) => {
+    if (meeting.status !== 'CONFIRMED') return false
+    
+    const meetingStartTime = new Date(meeting.timeSlot.startTime)
+    const now = new Date()
+    const oneHourBefore = new Date(meetingStartTime.getTime() - 60 * 60 * 1000)
+    
+    return now < oneHourBefore
   }
 
   const filteredMeetings = meetings.filter(meeting => {
@@ -291,6 +327,8 @@ export default function CompanyMeetingsPage() {
               meetings={filteredMeetings}
               onMeetingSelect={setSelectedMeeting}
               onMeetingAction={handleMeetingAction}
+              actionLoading={actionLoading}
+              canCancelMeeting={canCancelMeeting}
             />
           </TabsContent>
 
@@ -299,6 +337,8 @@ export default function CompanyMeetingsPage() {
               meetings={groupedMeetings.pending}
               onMeetingSelect={setSelectedMeeting}
               onMeetingAction={handleMeetingAction}
+              actionLoading={actionLoading}
+              canCancelMeeting={canCancelMeeting}
             />
           </TabsContent>
 
@@ -307,6 +347,8 @@ export default function CompanyMeetingsPage() {
               meetings={groupedMeetings.confirmed}
               onMeetingSelect={setSelectedMeeting}
               onMeetingAction={handleMeetingAction}
+              actionLoading={actionLoading}
+              canCancelMeeting={canCancelMeeting}
             />
           </TabsContent>
 
@@ -315,6 +357,8 @@ export default function CompanyMeetingsPage() {
               meetings={groupedMeetings.rejected}
               onMeetingSelect={setSelectedMeeting}
               onMeetingAction={handleMeetingAction}
+              actionLoading={actionLoading}
+              canCancelMeeting={canCancelMeeting}
             />
           </TabsContent>
 
@@ -323,6 +367,8 @@ export default function CompanyMeetingsPage() {
               meetings={groupedMeetings.cancelled}
               onMeetingSelect={setSelectedMeeting}
               onMeetingAction={handleMeetingAction}
+              actionLoading={actionLoading}
+              canCancelMeeting={canCancelMeeting}
             />
           </TabsContent>
         </Tabs>
@@ -336,7 +382,7 @@ export default function CompanyMeetingsPage() {
             <DialogHeader>
               <DialogTitle>미팅 상세 정보</DialogTitle>
               <DialogDescription>
-                미팅 신청 내용을 확인하고 승인 또는 거절하세요.
+                미팅 신청 내용을 확인하고 승인, 거절, 또는 취소하세요.
               </DialogDescription>
             </DialogHeader>
 
@@ -420,30 +466,80 @@ export default function CompanyMeetingsPage() {
                   </div>
                 )}
 
-                {/* 액션 버튼 */}
-                {selectedMeeting.status === 'PENDING' && (
-                  <div className="flex gap-2">
-                    <Button
-                      onClick={() =>
-                        handleMeetingAction(selectedMeeting.id, 'CONFIRMED')
-                      }
-                      className="flex-1"
-                    >
-                      <Check className="mr-2 h-4 w-4" />
-                      승인
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() =>
-                        handleMeetingAction(selectedMeeting.id, 'REJECTED')
-                      }
-                      className="flex-1"
-                    >
-                      <X className="mr-2 h-4 w-4" />
-                      거절
-                    </Button>
+                {/* 취소 가능 여부 안내 */}
+                {selectedMeeting.status === 'CONFIRMED' && !canCancelMeeting(selectedMeeting) && (
+                  <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <div className="flex items-center gap-2 text-yellow-800">
+                      <AlertTriangle className="h-4 w-4" />
+                      <span className="text-sm font-medium">
+                        미팅 시작 1시간 전까지만 취소 가능합니다.
+                      </span>
+                    </div>
                   </div>
                 )}
+
+                {/* 액션 버튼 */}
+                <div className="flex gap-2">
+                  {selectedMeeting.status === 'PENDING' && (
+                    <>
+                      <Button
+                        onClick={() =>
+                          handleMeetingAction(selectedMeeting.id, 'CONFIRMED')
+                        }
+                        disabled={actionLoading === selectedMeeting.id}
+                        className="flex-1"
+                      >
+                        <Check className="mr-2 h-4 w-4" />
+                        {actionLoading === selectedMeeting.id ? '처리중...' : '승인'}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() =>
+                          handleMeetingAction(selectedMeeting.id, 'REJECTED')
+                        }
+                        disabled={actionLoading === selectedMeeting.id}
+                        className="flex-1"
+                      >
+                        <X className="mr-2 h-4 w-4" />
+                        거절
+                      </Button>
+                    </>
+                  )}
+
+                  {selectedMeeting.status === 'CONFIRMED' && canCancelMeeting(selectedMeeting) && (
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button 
+                          variant="destructive" 
+                          className="flex-1"
+                          disabled={actionLoading === selectedMeeting.id}
+                        >
+                          <Ban className="mr-2 h-4 w-4" />
+                          미팅 취소
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>미팅을 취소하시겠습니까?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            이 작업은 되돌릴 수 없습니다. 미팅이 취소되면 바이어에게 알림이 전송됩니다.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>취소</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() =>
+                              handleMeetingAction(selectedMeeting.id, 'CANCELLED')
+                            }
+                            className="bg-red-600 hover:bg-red-700"
+                          >
+                            미팅 취소
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  )}
+                </div>
               </div>
             )}
           </DialogContent>
@@ -457,10 +553,14 @@ function MeetingList({
   meetings,
   onMeetingSelect,
   onMeetingAction,
+  actionLoading,
+  canCancelMeeting,
 }: {
   meetings: MeetingWithDetails[]
   onMeetingSelect: (meeting: MeetingWithDetails) => void
-  onMeetingAction: (meetingId: string, action: 'CONFIRMED' | 'REJECTED') => void
+  onMeetingAction: (meetingId: string, action: 'CONFIRMED' | 'REJECTED' | 'CANCELLED') => void
+  actionLoading: string | null
+  canCancelMeeting: (meeting: MeetingWithDetails) => boolean
 }) {
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -520,6 +620,7 @@ function MeetingList({
       {meetings.map(meeting => {
         const startDateTime = formatDateTime(meeting.timeSlot.startTime)
         const endDateTime = formatDateTime(meeting.timeSlot.endTime)
+        const isLoading = actionLoading === meeting.id
 
         return (
           <Card key={meeting.id} className="hover:shadow-md transition-shadow">
@@ -583,6 +684,7 @@ function MeetingList({
                       <Button
                         size="sm"
                         onClick={() => onMeetingAction(meeting.id, 'CONFIRMED')}
+                        disabled={isLoading}
                       >
                         <Check className="h-3 w-3" />
                       </Button>
@@ -590,9 +692,48 @@ function MeetingList({
                         size="sm"
                         variant="outline"
                         onClick={() => onMeetingAction(meeting.id, 'REJECTED')}
+                        disabled={isLoading}
                       >
                         <X className="h-3 w-3" />
                       </Button>
+                    </div>
+                  )}
+
+                  {meeting.status === 'CONFIRMED' && canCancelMeeting(meeting) && (
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          disabled={isLoading}
+                        >
+                          <Ban className="mr-1 h-3 w-3" />
+                          취소
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>미팅을 취소하시겠습니까?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            이 작업은 되돌릴 수 없습니다. 미팅이 취소되면 바이어에게 알림이 전송됩니다.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>취소</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => onMeetingAction(meeting.id, 'CANCELLED')}
+                            className="bg-red-600 hover:bg-red-700"
+                          >
+                            미팅 취소
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  )}
+
+                  {isLoading && (
+                    <div className="flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
                     </div>
                   )}
                 </div>
