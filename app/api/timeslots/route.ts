@@ -47,23 +47,23 @@ export async function POST(req: NextRequest) {
           {
             AND: [
               { startTime: { lte: startDateTime } },
-              { endTime: { gt: startDateTime } }
-            ]
+              { endTime: { gt: startDateTime } },
+            ],
           },
           {
             AND: [
               { startTime: { lt: endDateTime } },
-              { endTime: { gte: endDateTime } }
-            ]
+              { endTime: { gte: endDateTime } },
+            ],
           },
           {
             AND: [
               { startTime: { gte: startDateTime } },
-              { endTime: { lte: endDateTime } }
-            ]
-          }
-        ]
-      }
+              { endTime: { lte: endDateTime } },
+            ],
+          },
+        ],
+      },
     })
 
     if (existingSlot) {
@@ -107,7 +107,7 @@ export async function GET(req: NextRequest) {
     // 기업 사용자인 경우 자신의 시간대만 조회
     if (session.user.role === 'COMPANY') {
       whereClause.userId = session.user.id
-    } 
+    }
     // 바이어인 경우 특정 기업의 시간대 조회
     else if (companyId) {
       whereClause.userId = companyId
@@ -124,20 +124,20 @@ export async function GET(req: NextRequest) {
       whereClause.startTime = { gt: new Date() } // 미래 시간만
       whereClause.OR = [
         { meeting: null }, // 미팅이 없거나
-        { 
-          meeting: { 
-            status: { 
-              in: ['REJECTED', 'CANCELLED'] // 거절되거나 취소된 미팅
-            } 
-          } 
-        }
+        {
+          meeting: {
+            status: {
+              in: ['REJECTED', 'CANCELLED'], // 거절되거나 취소된 미팅
+            },
+          },
+        },
       ]
     }
 
     const timeSlots = await prisma.timeSlot.findMany({
       where: whereClause,
       orderBy: {
-        startTime: 'asc'
+        startTime: 'asc',
       },
       include: {
         meeting: {
@@ -146,12 +146,12 @@ export async function GET(req: NextRequest) {
               select: {
                 id: true,
                 name: true,
-                email: true
-              }
-            }
-          }
-        }
-      }
+                email: true,
+              },
+            },
+          },
+        },
+      },
     })
 
     return NextResponse.json(timeSlots)

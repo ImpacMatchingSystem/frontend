@@ -29,25 +29,25 @@ export async function PATCH(
     const meeting = await prisma.meeting.findFirst({
       where: {
         id: meetingId,
-        companyId: session.user.id
+        companyId: session.user.id,
       },
       include: {
         buyer: {
           select: {
             id: true,
             name: true,
-            email: true
-          }
+            email: true,
+          },
         },
         company: {
           select: {
             id: true,
             name: true,
-            email: true
-          }
+            email: true,
+          },
         },
-        timeSlot: true
-      }
+        timeSlot: true,
+      },
     })
 
     if (!meeting) {
@@ -74,22 +74,25 @@ export async function PATCH(
           select: {
             id: true,
             name: true,
-            email: true
-          }
+            email: true,
+          },
         },
         company: {
           select: {
             id: true,
             name: true,
-            email: true
-          }
+            email: true,
+          },
         },
-        timeSlot: true
-      }
+        timeSlot: true,
+      },
     })
 
     // 알림 생성
-    let notificationType: 'MEETING_APPROVED' | 'MEETING_REJECTED' | 'MEETING_CANCELLED'
+    let notificationType:
+      | 'MEETING_APPROVED'
+      | 'MEETING_REJECTED'
+      | 'MEETING_CANCELLED'
     let notificationTitle: string
     let notificationMessage: string
 
@@ -118,7 +121,7 @@ export async function PATCH(
       company: updatedMeeting.company,
       buyer: updatedMeeting.buyer,
       timeSlot: updatedMeeting.timeSlot,
-      message: `미팅이 ${status === 'CONFIRMED' ? '승인' : status === 'REJECTED' ? '거절' : '취소'}되었습니다`
+      message: `미팅이 ${status === 'CONFIRMED' ? '승인' : status === 'REJECTED' ? '거절' : '취소'}되었습니다`,
     })
   } catch (error) {
     console.error('Meeting update error:', error)
@@ -145,10 +148,7 @@ export async function GET(
     const meeting = await prisma.meeting.findFirst({
       where: {
         id: meetingId,
-        OR: [
-          { companyId: session.user.id },
-          { buyerId: session.user.id }
-        ]
+        OR: [{ companyId: session.user.id }, { buyerId: session.user.id }],
       },
       include: {
         buyer: {
@@ -156,8 +156,8 @@ export async function GET(
             id: true,
             name: true,
             email: true,
-            description: true
-          }
+            description: true,
+          },
         },
         company: {
           select: {
@@ -165,11 +165,11 @@ export async function GET(
             name: true,
             email: true,
             description: true,
-            website: true
-          }
+            website: true,
+          },
         },
-        timeSlot: true
-      }
+        timeSlot: true,
+      },
     })
 
     if (!meeting) {

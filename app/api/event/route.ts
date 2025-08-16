@@ -99,27 +99,33 @@ export async function PATCH(req: NextRequest) {
     }
 
     // 미팅 시간이 변경되는지 확인
-    const isMeetingDurationChanged = meetingDuration && meetingDuration !== event.meetingDuration
+    const isMeetingDurationChanged =
+      meetingDuration && meetingDuration !== event.meetingDuration
 
     let updatedEvent
     let resetMessage = ''
 
     if (isMeetingDurationChanged) {
       // 트랜잭션으로 처리
-      await prisma.$transaction(async (tx) => {
+      await prisma.$transaction(async tx => {
         // 1. 모든 미팅 삭제 (CASCADE로 인해 TimeSlot의 isBooked도 자동으로 false가 됨)
         const deletedMeetings = await tx.meeting.deleteMany({})
-        
+
         // 2. 모든 TimeSlot 삭제
         const deletedTimeSlots = await tx.timeSlot.deleteMany({})
-        
+
         // 3. 미팅 관련 알림 삭제
         await tx.notification.deleteMany({
           where: {
             type: {
-              in: ['MEETING_REQUEST', 'MEETING_APPROVED', 'MEETING_REJECTED', 'MEETING_CANCELLED']
-            }
-          }
+              in: [
+                'MEETING_REQUEST',
+                'MEETING_APPROVED',
+                'MEETING_REJECTED',
+                'MEETING_CANCELLED',
+              ],
+            },
+          },
         })
 
         // 4. 행사 정보 업데이트
@@ -168,7 +174,7 @@ export async function PATCH(req: NextRequest) {
 
     const response = {
       ...updatedEvent,
-      ...(resetMessage && { resetMessage })
+      ...(resetMessage && { resetMessage }),
     }
 
     return NextResponse.json(response)

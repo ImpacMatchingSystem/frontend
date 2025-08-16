@@ -18,6 +18,7 @@ import {
   X,
 } from 'lucide-react'
 
+import { CompanyHeader } from '@/components/layout/company-header'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -28,8 +29,8 @@ import {
 } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+
 import { useToast } from '@/hooks/use-toast'
-import { CompanyHeader } from '@/components/layout/company-header'
 
 interface Meeting {
   id: string
@@ -104,7 +105,7 @@ export default function CompanySchedulePage() {
     try {
       const [eventResponse, slotsResponse] = await Promise.all([
         fetch('/api/event'),
-        fetch('/api/timeslots')
+        fetch('/api/timeslots'),
       ])
 
       if (!eventResponse.ok || !slotsResponse.ok) {
@@ -135,7 +136,7 @@ export default function CompanySchedulePage() {
     const [hour, minute] = timeString.split(':').map(Number)
     const startTime = new Date(date)
     startTime.setHours(hour, minute, 0, 0)
-    
+
     const endTime = new Date(startTime)
     endTime.setMinutes(startTime.getMinutes() + eventInfo.meetingDuration)
 
@@ -190,14 +191,20 @@ export default function CompanySchedulePage() {
       console.error('Toggle time slot error:', error)
       toast({
         title: '오류',
-        description: error instanceof Error ? error.message : '시간대 처리 중 오류가 발생했습니다.',
+        description:
+          error instanceof Error
+            ? error.message
+            : '시간대 처리 중 오류가 발생했습니다.',
         variant: 'destructive',
       })
     }
   }
 
   // 미팅 승인/거절
-  const handleMeeting = async (meetingId: string, action: 'CONFIRMED' | 'REJECTED') => {
+  const handleMeeting = async (
+    meetingId: string,
+    action: 'CONFIRMED' | 'REJECTED'
+  ) => {
     try {
       const response = await fetch(`/api/meetings/${meetingId}`, {
         method: 'PATCH',
@@ -214,7 +221,10 @@ export default function CompanySchedulePage() {
 
       toast({
         title: '미팅 처리 완료',
-        description: action === 'CONFIRMED' ? '미팅이 승인되었습니다.' : '미팅이 거절되었습니다.',
+        description:
+          action === 'CONFIRMED'
+            ? '미팅이 승인되었습니다.'
+            : '미팅이 거절되었습니다.',
       })
 
       fetchData()
@@ -222,7 +232,10 @@ export default function CompanySchedulePage() {
       console.error('Handle meeting error:', error)
       toast({
         title: '처리 실패',
-        description: error instanceof Error ? error.message : '미팅 처리 중 오류가 발생했습니다.',
+        description:
+          error instanceof Error
+            ? error.message
+            : '미팅 처리 중 오류가 발생했습니다.',
         variant: 'destructive',
       })
     }
@@ -244,13 +257,25 @@ export default function CompanySchedulePage() {
     const endDate = new Date(eventInfo.endDate)
     const duration = eventInfo.meetingDuration
 
-    for (let date = new Date(startDate); date <= endDate; date.setDate(date.getDate() + 1)) {
+    for (
+      let date = new Date(startDate);
+      date <= endDate;
+      date.setDate(date.getDate() + 1)
+    ) {
       // 평일만 (월-금)
       if (date.getDay() >= 1 && date.getDay() <= 5) {
-        const [startHour, startMinute] = eventInfo.operationStartTime.split(':').map(Number)
-        const [endHour, endMinute] = eventInfo.operationEndTime.split(':').map(Number)
-        const [lunchStartHour, lunchStartMinute] = eventInfo.lunchStartTime.split(':').map(Number)
-        const [lunchEndHour, lunchEndMinute] = eventInfo.lunchEndTime.split(':').map(Number)
+        const [startHour, startMinute] = eventInfo.operationStartTime
+          .split(':')
+          .map(Number)
+        const [endHour, endMinute] = eventInfo.operationEndTime
+          .split(':')
+          .map(Number)
+        const [lunchStartHour, lunchStartMinute] = eventInfo.lunchStartTime
+          .split(':')
+          .map(Number)
+        const [lunchEndHour, lunchEndMinute] = eventInfo.lunchEndTime
+          .split(':')
+          .map(Number)
 
         const dayStart = new Date(date)
         dayStart.setHours(startHour, startMinute, 0, 0)
@@ -264,7 +289,11 @@ export default function CompanySchedulePage() {
         const lunchEnd = new Date(date)
         lunchEnd.setHours(lunchEndHour, lunchEndMinute, 0, 0)
 
-        for (let current = new Date(dayStart); current < dayEnd; current.setMinutes(current.getMinutes() + duration)) {
+        for (
+          let current = new Date(dayStart);
+          current < dayEnd;
+          current.setMinutes(current.getMinutes() + duration)
+        ) {
           const slotEnd = new Date(current)
           slotEnd.setMinutes(current.getMinutes() + duration)
 
@@ -325,14 +354,14 @@ export default function CompanySchedulePage() {
     })
 
     const isPast = startTime < new Date()
-    
+
     if (!slot) {
       return {
         exists: false,
         isPast,
         bgColor: isPast ? 'bg-gray-100' : 'bg-white hover:bg-gray-50',
         content: null,
-        clickable: !isPast
+        clickable: !isPast,
       }
     }
 
@@ -342,7 +371,7 @@ export default function CompanySchedulePage() {
         isPast: true,
         bgColor: 'bg-gray-100',
         content: <Clock className="h-3 w-3 text-gray-400" />,
-        clickable: false
+        clickable: false,
       }
     }
 
@@ -361,7 +390,7 @@ export default function CompanySchedulePage() {
                 <div className="flex gap-1 mt-1 justify-center">
                   <Button
                     size="sm"
-                    onClick={(e) => {
+                    onClick={e => {
                       e.stopPropagation()
                       handleMeeting(slot.meeting!.id, 'CONFIRMED')
                     }}
@@ -372,7 +401,7 @@ export default function CompanySchedulePage() {
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={(e) => {
+                    onClick={e => {
                       e.stopPropagation()
                       handleMeeting(slot.meeting!.id, 'REJECTED')
                     }}
@@ -383,7 +412,7 @@ export default function CompanySchedulePage() {
                 </div>
               </div>
             ),
-            clickable: false
+            clickable: false,
           }
         case 'CONFIRMED':
           return {
@@ -397,13 +426,15 @@ export default function CompanySchedulePage() {
                 </div>
               </div>
             ),
-            clickable: false
+            clickable: false,
           }
         case 'REJECTED':
         case 'CANCELLED':
           return {
             exists: true,
-            bgColor: slot.isBooked ? 'bg-red-100 border-red-300' : 'bg-green-100 border-green-300',
+            bgColor: slot.isBooked
+              ? 'bg-red-100 border-red-300'
+              : 'bg-green-100 border-green-300',
             content: (
               <div className="text-center p-1">
                 {slot.isBooked ? (
@@ -413,7 +444,7 @@ export default function CompanySchedulePage() {
                 )}
               </div>
             ),
-            clickable: true
+            clickable: true,
           }
       }
     }
@@ -423,7 +454,7 @@ export default function CompanySchedulePage() {
         exists: true,
         bgColor: 'bg-red-100 border-red-300',
         content: <Ban className="h-3 w-3 text-red-600 mx-auto" />,
-        clickable: true
+        clickable: true,
       }
     }
 
@@ -431,7 +462,7 @@ export default function CompanySchedulePage() {
       exists: true,
       bgColor: 'bg-green-100 border-green-300',
       content: <CheckCircle className="h-3 w-3 text-green-600 mx-auto" />,
-      clickable: true
+      clickable: true,
     }
   }
 
@@ -440,17 +471,25 @@ export default function CompanySchedulePage() {
     if (!eventInfo) return []
 
     const slots = []
-    const [startHour, startMinute] = eventInfo.operationStartTime.split(':').map(Number)
-    const [endHour, endMinute] = eventInfo.operationEndTime.split(':').map(Number)
+    const [startHour, startMinute] = eventInfo.operationStartTime
+      .split(':')
+      .map(Number)
+    const [endHour, endMinute] = eventInfo.operationEndTime
+      .split(':')
+      .map(Number)
     const duration = eventInfo.meetingDuration
 
     const start = new Date()
     start.setHours(startHour, startMinute, 0, 0)
-    
+
     const end = new Date()
     end.setHours(endHour, endMinute, 0, 0)
 
-    for (let current = new Date(start); current < end; current.setMinutes(current.getMinutes() + duration)) {
+    for (
+      let current = new Date(start);
+      current < end;
+      current.setMinutes(current.getMinutes() + duration)
+    ) {
       const timeString = current.toTimeString().substring(0, 5)
       slots.push(timeString)
     }
@@ -461,12 +500,16 @@ export default function CompanySchedulePage() {
   // 행사 기간 날짜 목록 생성
   const getEventDates = () => {
     if (!eventInfo) return []
-    
+
     const dates = []
     const startDate = new Date(eventInfo.startDate)
     const endDate = new Date(eventInfo.endDate)
-    
-    for (let date = new Date(startDate); date <= endDate; date.setDate(date.getDate() + 1)) {
+
+    for (
+      let date = new Date(startDate);
+      date <= endDate;
+      date.setDate(date.getDate() + 1)
+    ) {
       dates.push(new Date(date))
     }
     return dates
@@ -488,10 +531,15 @@ export default function CompanySchedulePage() {
   }
 
   const availableSlots = timeSlots.filter(
-    slot => !slot.isBooked && !slot.meeting && new Date(slot.startTime) > new Date()
+    slot =>
+      !slot.isBooked && !slot.meeting && new Date(slot.startTime) > new Date()
   )
-  const bookedSlots = timeSlots.filter(slot => slot.meeting?.status === 'CONFIRMED')
-  const pendingSlots = timeSlots.filter(slot => slot.meeting?.status === 'PENDING')
+  const bookedSlots = timeSlots.filter(
+    slot => slot.meeting?.status === 'CONFIRMED'
+  )
+  const pendingSlots = timeSlots.filter(
+    slot => slot.meeting?.status === 'PENDING'
+  )
   const disabledSlots = timeSlots.filter(slot => slot.isBooked && !slot.meeting)
 
   const eventDates = getEventDates()
@@ -503,12 +551,15 @@ export default function CompanySchedulePage() {
       <CompanyHeader />
       <div className="max-w-7xl mx-auto mt-8 px-2 sm:px-4 lg:px-8">
         <div className="mb-6 sm:mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">미팅 시간대 관리</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+            미팅 시간대 관리
+          </h1>
           <p className="text-sm sm:text-base text-gray-600 mt-2">
             {eventInfo && (
               <>
-                • {eventInfo.name} <br />
-                • {new Date(eventInfo.startDate).toLocaleDateString('ko-KR')} ~ {new Date(eventInfo.endDate).toLocaleDateString('ko-KR')} <br />
+                • {eventInfo.name} <br />•{' '}
+                {new Date(eventInfo.startDate).toLocaleDateString('ko-KR')} ~{' '}
+                {new Date(eventInfo.endDate).toLocaleDateString('ko-KR')} <br />
                 • 미팅 시간: {eventInfo.meetingDuration}분
               </>
             )}
@@ -519,33 +570,43 @@ export default function CompanySchedulePage() {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xs sm:text-sm font-medium">사용가능</CardTitle>
+              <CardTitle className="text-xs sm:text-sm font-medium">
+                사용가능
+              </CardTitle>
               <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-green-600" />
             </CardHeader>
             <CardContent>
               <div className="text-lg sm:text-2xl font-bold text-green-600">
                 {availableSlots.length}
               </div>
-              <p className="text-xs text-muted-foreground">신청 가능한 시간대</p>
+              <p className="text-xs text-muted-foreground">
+                신청 가능한 시간대
+              </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xs sm:text-sm font-medium">승인 대기</CardTitle>
+              <CardTitle className="text-xs sm:text-sm font-medium">
+                승인 대기
+              </CardTitle>
               <AlertCircle className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-600" />
             </CardHeader>
             <CardContent>
               <div className="text-lg sm:text-2xl font-bold text-yellow-600">
                 {pendingSlots.length}
               </div>
-              <p className="text-xs text-muted-foreground">승인 대기 중인 미팅</p>
+              <p className="text-xs text-muted-foreground">
+                승인 대기 중인 미팅
+              </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xs sm:text-sm font-medium">확정됨</CardTitle>
+              <CardTitle className="text-xs sm:text-sm font-medium">
+                확정됨
+              </CardTitle>
               <Users className="h-3 w-3 sm:h-4 sm:w-4 text-blue-600" />
             </CardHeader>
             <CardContent>
@@ -558,7 +619,9 @@ export default function CompanySchedulePage() {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xs sm:text-sm font-medium">사용불가능</CardTitle>
+              <CardTitle className="text-xs sm:text-sm font-medium">
+                사용불가능
+              </CardTitle>
               <Ban className="h-3 w-3 sm:h-4 sm:w-4 text-red-600" />
             </CardHeader>
             <CardContent>
@@ -617,14 +680,16 @@ export default function CompanySchedulePage() {
               </CardTitle>
               {eventInfo && (
                 <div className="text-xs sm:text-sm font-medium text-gray-600">
-                  {new Date(eventInfo.startDate).toLocaleDateString('ko-KR', { 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric' 
-                  })} ~ {new Date(eventInfo.endDate).toLocaleDateString('ko-KR', { 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric' 
+                  {new Date(eventInfo.startDate).toLocaleDateString('ko-KR', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                  })}{' '}
+                  ~{' '}
+                  {new Date(eventInfo.endDate).toLocaleDateString('ko-KR', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
                   })}
                 </div>
               )}
@@ -642,9 +707,15 @@ export default function CompanySchedulePage() {
                       시간
                     </th>
                     {eventDates.map((date, index) => (
-                      <th key={index} className="p-2 sm:p-3 text-xs sm:text-sm font-semibold text-gray-700 border bg-gray-50 min-w-[80px] sm:min-w-[140px]">
+                      <th
+                        key={index}
+                        className="p-2 sm:p-3 text-xs sm:text-sm font-semibold text-gray-700 border bg-gray-50 min-w-[80px] sm:min-w-[140px]"
+                      >
                         <div className="text-sm sm:text-base font-bold text-gray-800">
-                          {date.toLocaleDateString('ko-KR', { month: 'numeric', day: 'numeric' })}
+                          {date.toLocaleDateString('ko-KR', {
+                            month: 'numeric',
+                            day: 'numeric',
+                          })}
                         </div>
                         <div className="text-xs text-gray-600 mt-1 hidden sm:block">
                           {weekDayNames[date.getDay()]}요일
@@ -657,11 +728,12 @@ export default function CompanySchedulePage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {timeSlotsList.map((timeString) => (
+                  {timeSlotsList.map(timeString => (
                     <tr key={timeString}>
                       <td className="p-1 sm:p-3 text-xs sm:text-sm text-gray-700 border text-center font-semibold bg-gray-50">
                         <div className="text-xs sm:text-base">
-                          {timeString.substring(0, 2)}:{timeString.substring(3, 5)}
+                          {timeString.substring(0, 2)}:
+                          {timeString.substring(3, 5)}
                         </div>
                       </td>
                       {eventDates.map((date, dateIndex) => {
@@ -670,7 +742,9 @@ export default function CompanySchedulePage() {
                           <td
                             key={dateIndex}
                             className={`border h-12 sm:h-20 ${slotInfo.bgColor} ${
-                              slotInfo.clickable ? 'cursor-pointer hover:opacity-80' : ''
+                              slotInfo.clickable
+                                ? 'cursor-pointer hover:opacity-80'
+                                : ''
                             } transition-all duration-200`}
                             onClick={() => {
                               if (slotInfo.clickable) {

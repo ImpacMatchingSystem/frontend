@@ -21,11 +21,11 @@ export async function DELETE(
     const timeSlot = await prisma.timeSlot.findFirst({
       where: {
         id: timeSlotId,
-        userId: session.user.id
+        userId: session.user.id,
       },
       include: {
-        meeting: true
-      }
+        meeting: true,
+      },
     })
 
     if (!timeSlot) {
@@ -46,13 +46,13 @@ export async function DELETE(
     // 시간대를 사용 불가능 상태로 변경 (isBooked = true)
     const updatedTimeSlot = await prisma.timeSlot.update({
       where: { id: timeSlotId },
-      data: { isBooked: true }
+      data: { isBooked: true },
     })
 
     return NextResponse.json(
-      { 
+      {
         message: '시간대가 사용 불가능 상태로 변경되었습니다',
-        timeSlot: updatedTimeSlot
+        timeSlot: updatedTimeSlot,
       },
       { status: 200 }
     )
@@ -82,11 +82,11 @@ export async function PUT(
     const timeSlot = await prisma.timeSlot.findFirst({
       where: {
         id: timeSlotId,
-        userId: session.user.id
+        userId: session.user.id,
       },
       include: {
-        meeting: true
-      }
+        meeting: true,
+      },
     })
 
     if (!timeSlot) {
@@ -115,13 +115,13 @@ export async function PUT(
     // 시간대를 사용 가능 상태로 변경 (isBooked = false)
     const updatedTimeSlot = await prisma.timeSlot.update({
       where: { id: timeSlotId },
-      data: { isBooked: false }
+      data: { isBooked: false },
     })
 
     return NextResponse.json(
-      { 
+      {
         message: '시간대가 사용 가능 상태로 변경되었습니다',
-        timeSlot: updatedTimeSlot
+        timeSlot: updatedTimeSlot,
       },
       { status: 200 }
     )
