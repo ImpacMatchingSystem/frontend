@@ -8,14 +8,10 @@ import {
   Calendar,
   Clock,
   Settings,
-  Plus,
   Ban,
   CheckCircle,
-  XCircle,
   Users,
   AlertCircle,
-  Check,
-  X,
 } from 'lucide-react'
 
 import { CompanyHeader } from '@/components/layout/company-header'
@@ -27,8 +23,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 
 import { useToast } from '@/hooks/use-toast'
 
@@ -72,12 +66,7 @@ export default function CompanySchedulePage() {
   const [eventInfo, setEventInfo] = useState<EventInfo | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-
-  // 새 시간대 추가를 위한 상태
-  const [newSlotDate, setNewSlotDate] = useState('')
-  const [newSlotStartTime, setNewSlotStartTime] = useState('')
-  const [newSlotEndTime, setNewSlotEndTime] = useState('')
-
+  
   useEffect(() => {
     if (status === 'loading') return
 
